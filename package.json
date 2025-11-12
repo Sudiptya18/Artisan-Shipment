@@ -1,0 +1,25 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "dependencies": {
+        "@popperjs/core": "^2.11.8",
+        "bootstrap": "^5.3.3",
+        "chart.js": "^4.4.6",
+        "axios": "^1.11.0",
+        "simple-datatables": "^9.2.1",
+        "vue": "^3.5.12",
+        "vue-router": "^4.4.5"
+    },
+    "devDependencies": {
+        "concurrently": "^9.0.1",
+        "laravel-vite-plugin": "^1.0.2",
+        "sass": "^1.80.5",
+        "@vitejs/plugin-vue": "^5.0.5",
+        "vite": "^5.4.10"
+    }
+}
