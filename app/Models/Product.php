@@ -12,7 +12,6 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'sku',
         'product_title',
         'global_code',
         'description',
@@ -22,11 +21,23 @@ class Product extends Model
         'category_id',
         'format_id',
         'origin_id',
+        'status',
         'active',
     ];
 
     protected $casts = [
         'active' => 'boolean',
+    ];
+
+    public const STATUS_OPTIONS = [
+        'ACTIVE',
+        'DISCONTINUED-UI',
+        'DISCONTINUED-ARTISAN',
+        'REPLACEMENT',
+        'REPLACEMENT & DISCONTINUED',
+        'NEW CODE',
+        'FUTURE DISCONTINUED',
+        'NEW TENTATIVE',
     ];
 
     public function brand(): BelongsTo

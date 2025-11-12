@@ -3,12 +3,6 @@
         <div class="d-flex align-items-center justify-content-between my-4">
             <div>
                 <h1 class="mt-2">Add Country of Origin</h1>
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item">
-                        <RouterLink :to="{ name: 'dashboard' }">Dashboard</RouterLink>
-                    </li>
-                    <li class="breadcrumb-item active">Origins</li>
-                </ol>
             </div>
         </div>
 
@@ -83,10 +77,10 @@
                             <table class="table table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>Sl No.</th>
-                                        <th>Name</th>
-                                        <th>ISO Code</th>
-                                        <th>Action</th>
+                                        <th class="text-center">Sl No.</th>
+                                        <th class="text-center">Name</th>
+                                        <th class="text-center">ISO Code</th>
+                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -94,10 +88,10 @@
                                         <td colspan="4" class="text-center">No origins found</td>
                                     </tr>
                                     <tr v-for="(item, index) in items" :key="item.id">
-                                        <td>{{ index + 1 }}</td>
-                                        <td>{{ item.origin_name }}</td>
-                                        <td>{{ item.iso_code || '-' }}</td>
-                                        <td>
+                                        <td class="text-center">{{ index + 1 }}</td>
+                                        <td class="text-center">{{ item.origin_name }}</td>
+                                        <td class="text-center">{{ item.iso_code || '-' }}</td>
+                                        <td class="text-center">
                                             <button
                                                 class="btn btn-sm btn-primary me-1"
                                                 @click="edit(item)"

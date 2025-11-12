@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use Spatie\Activitylog\Models\Activity;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
@@ -43,6 +44,12 @@ class AuthController extends Controller
         Auth::login($user, $remember);
         $request->session()->regenerate();
 
+        // Log login activity
+        activity()
+            ->causedBy($user)
+            ->withProperties(['page' => 'login'])
+            ->log('User logged in');
+
         return new UserResource($request->user());
     }
 
@@ -52,6 +59,12 @@ class AuthController extends Controller
         $user = $request->user();
 
         if ($user) {
+            // Log logout activity before logging out
+            activity()
+                ->causedBy($user)
+                ->withProperties(['page' => 'logout'])
+                ->log('User logged out');
+            
             $user->tokens()->delete();
         }
 
@@ -65,7 +78,12 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return new UserResource($request->user());
+        $user = $request->user();
+        if ($user) {
+            $user->load('role');
+        }
+        $resource = new UserResource($user);
+        return $resource;
     }
 
     public function register(RegisterRequest $request)
@@ -80,6 +98,13 @@ class AuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+
+        // Log registration activity
+        activity()
+            ->causedBy($user)
+            ->performedOn($user)
+            ->withProperties(['page' => 'user-registration'])
+            ->log("New user registered: {$user->name} ({$user->username})");
 
         return (new UserResource($user))->response()->setStatusCode(201);
     }

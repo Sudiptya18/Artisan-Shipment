@@ -26,6 +26,28 @@ class NavigationSeeder extends Seeder
                     'children' => [],
                 ],
                 [
+                    'key' => 'settings',
+                    'title' => 'Settings',
+                    'icon' => 'fas fa-cog',
+                    'children' => [
+                        [
+                            'key' => 'user-registration',
+                            'title' => 'User Registration',
+                            'route' => 'user-registration',
+                        ],
+                        [
+                            'key' => 'user-page-permission',
+                            'title' => 'User Page Permission',
+                            'route' => 'user-page-permission',
+                        ],
+                        [
+                            'key' => 'change-password',
+                            'title' => 'Change Password',
+                            'route' => 'change-password',
+                        ],
+                    ],
+                ],
+                [
                     'key' => 'layouts',
                     'title' => 'Layouts',
                     'icon' => 'fas fa-columns',
@@ -57,35 +79,27 @@ class NavigationSeeder extends Seeder
                             'title' => 'Product List',
                             'route' => 'products-list',
                         ],
+                        [
+                            'key' => 'brands',
+                            'title' => 'Add Brands',
+                            'route' => 'brands',
+                        ],
+                        [
+                            'key' => 'categories',
+                            'title' => 'Add Categories',
+                            'route' => 'categories',
+                        ],
+                        [
+                            'key' => 'formats',
+                            'title' => 'Add Format',
+                            'route' => 'formats',
+                        ],
+                        [
+                            'key' => 'origins',
+                            'title' => 'Add Country of Origin',
+                            'route' => 'origins',
+                        ],
                     ],
-                ],
-                [
-                    'key' => 'brands',
-                    'title' => 'Add Brands',
-                    'icon' => 'fas fa-tag',
-                    'route' => 'brands',
-                    'children' => [],
-                ],
-                [
-                    'key' => 'categories',
-                    'title' => 'Add Categories',
-                    'icon' => 'fas fa-folder',
-                    'route' => 'categories',
-                    'children' => [],
-                ],
-                [
-                    'key' => 'formats',
-                    'title' => 'Add Format',
-                    'icon' => 'fas fa-cube',
-                    'route' => 'formats',
-                    'children' => [],
-                ],
-                [
-                    'key' => 'origins',
-                    'title' => 'Add Country of Origin',
-                    'icon' => 'fas fa-globe',
-                    'route' => 'origins',
-                    'children' => [],
                 ],
                 [
                     'key' => 'auth',

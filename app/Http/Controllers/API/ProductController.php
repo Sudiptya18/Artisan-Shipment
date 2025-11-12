@@ -16,7 +16,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = (int) $request->input('per_page', 20);
         $search = $request->input('search');
         $active = $request->input('active');
 
@@ -24,16 +24,58 @@ class ProductController extends Controller
             ->with(['brand', 'category', 'format', 'origin', 'images'])
             ->orderByDesc('created_at');
 
+        // General search (searches across multiple fields)
         if ($search) {
             $query->where(function ($builder) use ($search) {
                 $builder->where('product_title', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%")
                     ->orWhere('global_code', 'like', "%{$search}%");
             });
         }
 
-        if ($active !== null && $active !== '') {
+        if ($request->has('filter_global_code') && $request->input('filter_global_code')) {
+            $query->where('global_code', 'like', "%{$request->input('filter_global_code')}%");
+        }
+
+        if ($request->has('filter_product_title') && $request->input('filter_product_title')) {
+            $query->where('product_title', 'like', "%{$request->input('filter_product_title')}%");
+        }
+
+        if ($request->has('filter_brand_id') && $request->input('filter_brand_id')) {
+            $query->where('brand_id', $request->input('filter_brand_id'));
+        }
+
+        if ($request->has('filter_category_id') && $request->input('filter_category_id')) {
+            $query->where('category_id', $request->input('filter_category_id'));
+        }
+
+        if ($request->has('filter_format_id') && $request->input('filter_format_id')) {
+            $query->where('format_id', $request->input('filter_format_id'));
+        }
+
+        if ($request->has('filter_origin_id') && $request->input('filter_origin_id')) {
+            $query->where('origin_id', $request->input('filter_origin_id'));
+        }
+
+        if ($request->has('filter_active') && $request->input('filter_active') !== '') {
+            $query->where('active', filter_var($request->input('filter_active'), FILTER_VALIDATE_BOOL));
+        }
+
+        // Legacy active filter (for backward compatibility)
+        if ($active !== null && $active !== '' && !$request->has('filter_active')) {
             $query->where('active', filter_var($active, FILTER_VALIDATE_BOOL));
+        }
+
+        // If per_page is 0, return all records without pagination
+        if ($perPage === 0) {
+            $products = $query->get();
+            return ProductResource::collection($products)->additional([
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $products->count(),
+                    'total' => $products->count(),
+                ],
+            ]);
         }
 
         $products = $query->paginate($perPage);
@@ -47,6 +89,16 @@ class ProductController extends Controller
         $images = $data['images'] ?? [];
         unset($data['images']);
 
+        // Set default status to ACTIVE if not provided
+        if (!isset($data['status'])) {
+            $data['status'] = 'ACTIVE';
+        }
+
+        // Set active to true by default
+        if (!isset($data['active'])) {
+            $data['active'] = true;
+        }
+
         $product = DB::transaction(function () use ($data, $images) {
             $product = Product::create($data);
 
@@ -55,9 +107,77 @@ class ProductController extends Controller
             return $product;
         });
 
+        // Log activity
+        activity()
+            ->performedOn($product)
+            ->withProperties(['page' => 'products-create'])
+            ->log("Product created: {$product->product_title} ({$product->global_code})");
+
         return (new ProductResource(
             $product->load(['brand', 'category', 'format', 'origin', 'images'])
         ))->response()->setStatusCode(201);
+    }
+
+    public function show(Product $product)
+    {
+        return new ProductResource(
+            $product->load(['brand', 'category', 'format', 'origin', 'images'])
+        );
+    }
+
+    public function update(StoreProductRequest $request, Product $product)
+    {
+        $data = $request->validated();
+        $images = $data['images'] ?? [];
+        unset($data['images']);
+
+        $oldValues = $product->toArray();
+
+        $product = DB::transaction(function () use ($product, $data, $images) {
+            $product->update($data);
+            $this->syncImages($product, $images);
+            return $product->fresh();
+        });
+
+        // Log activity
+        activity()
+            ->performedOn($product)
+            ->withProperties([
+                'page' => 'products-edit',
+                'old' => $oldValues,
+                'attributes' => $product->toArray(),
+            ])
+            ->log("Product updated: {$product->product_title} ({$product->global_code})");
+
+        return new ProductResource(
+            $product->load(['brand', 'category', 'format', 'origin', 'images'])
+        );
+    }
+
+    public function destroy(Product $product)
+    {
+        $productTitle = $product->product_title;
+        $globalCode = $product->global_code;
+
+        DB::transaction(function () use ($product) {
+            // Delete all images
+            foreach ($product->images as $image) {
+                if ($image->image_url) {
+                    Storage::disk('public')->delete($image->image_url);
+                }
+            }
+            $product->delete();
+        });
+
+        // Log activity
+        activity()
+            ->withProperties([
+                'page' => 'products-list',
+                'deleted_id' => $product->id,
+            ])
+            ->log("Product deleted: {$productTitle} ({$globalCode})");
+
+        return response()->noContent();
     }
 
     public function storeImages(Product $product, Request $request)
@@ -97,11 +217,12 @@ class ProductController extends Controller
                 continue;
             }
 
-            $path = $file->store('product-images', 'public');
+            // Store in public/assets/img/products
+            $path = $file->storeAs('assets/img/products', $file->hashName(), 'public');
 
             $product->images()->create([
                 'image_url' => $path,
-                'alt_text' => $product->product_title,
+                'alt_text' => $product->product_title ?? 'Product Image',
                 'position' => $index,
             ]);
         }

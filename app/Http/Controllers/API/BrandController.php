@@ -24,6 +24,11 @@ class BrandController extends Controller
             return Brand::create($data);
         });
 
+        activity()
+            ->performedOn($brand)
+            ->withProperties(['page' => 'brands'])
+            ->log("Brand created: {$brand->brand_name}");
+
         return response()->json(['data' => $brand], 201);
     }
 
@@ -35,19 +40,39 @@ class BrandController extends Controller
     public function update(StoreBrandRequest $request, Brand $brand)
     {
         $data = $request->validated();
+        $oldValues = $brand->toArray();
 
         DB::transaction(function () use ($brand, $data) {
             $brand->update($data);
         });
+
+        activity()
+            ->performedOn($brand)
+            ->withProperties([
+                'page' => 'brands',
+                'old' => $oldValues,
+                'attributes' => $brand->fresh()->toArray(),
+            ])
+            ->log("Brand updated: {$brand->brand_name}");
 
         return response()->json(['data' => $brand->fresh()]);
     }
 
     public function destroy(Brand $brand)
     {
+        $brandName = $brand->brand_name;
+        $brandId = $brand->id;
+        
         DB::transaction(function () use ($brand) {
             $brand->delete();
         });
+
+        activity()
+            ->withProperties([
+                'page' => 'brands',
+                'deleted_id' => $brandId,
+            ])
+            ->log("Brand deleted: {$brandName}");
 
         return response()->noContent();
     }

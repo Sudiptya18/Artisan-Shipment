@@ -21,10 +21,11 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
+        $productId = $this->route('product')?->id;
+
         return [
-            'sku' => ['nullable', 'string', 'max:128', 'unique:products,sku'],
-            'product_title' => ['required', 'string', 'max:512'],
-            'global_code' => ['nullable', 'string', 'max:128'],
+            'product_title' => ['nullable', 'string', 'max:512'],
+            'global_code' => ['required', 'string', 'max:128', 'unique:products,global_code,' . $productId],
             'description' => ['nullable', 'string'],
             'benefits' => ['nullable', 'string'],
             'pack_size' => ['nullable', 'string', 'max:128'],
@@ -32,6 +33,7 @@ class StoreProductRequest extends FormRequest
             'category_id' => ['nullable', 'exists:categories,id'],
             'format_id' => ['nullable', 'exists:formats,id'],
             'origin_id' => ['nullable', 'exists:origins,id'],
+            'status' => ['nullable', 'in:ACTIVE,DISCONTINUED-UI,DISCONTINUED-ARTISAN,REPLACEMENT,REPLACEMENT & DISCONTINUED,NEW CODE,FUTURE DISCONTINUED,NEW TENTATIVE'],
             'active' => ['sometimes', 'boolean'],
             'images' => ['sometimes', 'array', 'max:10'],
             'images.*' => ['file', 'image', 'max:5120'],

@@ -3,12 +3,6 @@
         <div class="d-flex align-items-center justify-content-between my-4">
             <div>
                 <h1 class="mt-2">Add Format</h1>
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item">
-                        <RouterLink :to="{ name: 'dashboard' }">Dashboard</RouterLink>
-                    </li>
-                    <li class="breadcrumb-item active">Formats</li>
-                </ol>
             </div>
         </div>
 
@@ -69,9 +63,9 @@
                             <table class="table table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>Sl No.</th>
-                                        <th>Name</th>
-                                        <th>Action</th>
+                                        <th class="text-center">Sl No.</th>
+                                        <th class="text-center">Name</th>
+                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -79,9 +73,9 @@
                                         <td colspan="3" class="text-center">No formats found</td>
                                     </tr>
                                     <tr v-for="(item, index) in items" :key="item.id">
-                                        <td>{{ index + 1 }}</td>
-                                        <td>{{ item.format_name }}</td>
-                                        <td>
+                                        <td class="text-center">{{ index + 1 }}</td>
+                                        <td class="text-center">{{ item.format_name }}</td>
+                                        <td class="text-center">
                                             <button
                                                 class="btn btn-sm btn-primary me-1"
                                                 @click="edit(item)"

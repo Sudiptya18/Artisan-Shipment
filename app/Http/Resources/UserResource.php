@@ -21,6 +21,17 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'is_active' => (bool) $this->is_active,
+            'role_id' => $this->role_id,
+            'designation_id' => $this->designation_id,
+            'role' => $this->whenLoaded('role', function () {
+                return [
+                    'id' => $this->role->id,
+                    'role_name' => $this->role->role_name,
+                ];
+            }),
+            'activity_logs_count' => $this->when(isset($this->activity_logs_count), function () {
+                return $this->activity_logs_count;
+            }),
         ];
     }
 }

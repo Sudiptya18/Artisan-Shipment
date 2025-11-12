@@ -50,4 +50,12 @@ class Navigation extends Model
     {
         return $query->orderBy('order_by')->orderBy('title');
     }
+
+    /**
+     * Get the roles policies for this navigation.
+     */
+    public function rolesPolicies()
+    {
+        return $this->hasMany(RolesPolicy::class);
+    }
 }

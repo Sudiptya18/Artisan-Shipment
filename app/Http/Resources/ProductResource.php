@@ -17,12 +17,12 @@ class ProductResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'sku' => $this->sku,
             'product_title' => $this->product_title,
             'global_code' => $this->global_code,
             'description' => $this->description,
             'benefits' => $this->benefits,
             'pack_size' => $this->pack_size,
+            'status' => $this->status,
             'active' => (bool) $this->active,
             'brand' => $this->whenLoaded('brand', fn () => [
                 'id' => $this->brand?->id,
@@ -45,6 +45,7 @@ class ProductResource extends JsonResource
             'images' => $this->whenLoaded('images', fn () => $this->images->map(fn ($image) => [
                 'id' => $image->id,
                 'url' => $image->image_url ? Storage::disk('public')->url($image->image_url) : null,
+                'path' => $image->image_url,
                 'alt_text' => $image->alt_text,
                 'position' => $image->position,
             ])),

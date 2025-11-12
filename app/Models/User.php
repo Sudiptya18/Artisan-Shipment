@@ -24,6 +24,8 @@ class User extends Authenticatable
         'email',
         'phone',
         'is_active',
+        'role_id',
+        'designation_id',
         'password',
     ];
 
@@ -50,4 +52,28 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the role that owns the user.
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Get the roles policies for the user.
+     */
+    public function rolesPolicies()
+    {
+        return $this->hasMany(RolesPolicy::class);
+    }
+
+    /**
+     * Get the activity logs for the user.
+     */
+    public function activityLogs()
+    {
+        return $this->morphMany(\Spatie\Activitylog\Models\Activity::class, 'causer');
+    }
 }
+

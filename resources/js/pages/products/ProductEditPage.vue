@@ -1,14 +1,19 @@
 <template>
     <div class="container-fluid px-4">
         <div class="d-flex align-items-center justify-content-between my-4">
-            <h1 class="mb-0">Create Product</h1>
+            <h1 class="mb-0">Edit Product</h1>
         </div>
 
         <div v-if="alert.message" :class="`alert alert-${alert.type}`" role="alert">
             {{ alert.message }}
         </div>
 
-        <div class="card mb-4">
+        <div v-if="isLoading" class="text-center py-5">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Loading product...
+        </div>
+
+        <div v-else class="card mb-4">
             <div class="card-body">
                 <form @submit.prevent="submit">
                     <div class="row g-3">
@@ -137,6 +142,18 @@
                                 {{ errors.pack_size.join(', ') }}
                             </div>
                         </div>
+                        <div class="col-md-4 d-flex align-items-center">
+                            <div class="form-check form-switch mt-4">
+                                <input
+                                    v-model="form.active"
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    role="switch"
+                                    id="product-active"
+                                />
+                                <label class="form-check-label" for="product-active">Active</label>
+                            </div>
+                        </div>
                         <div class="col-md-6">
                             <label class="form-label">Description</label>
                             <textarea
@@ -164,7 +181,28 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label">Images</label>
+                            <label class="form-label">Existing Images</label>
+                            <div v-if="existingImages.length > 0" class="row g-2 mb-3">
+                                <div v-for="(image, index) in existingImages" :key="image.id" class="col-md-2 col-sm-4 col-6">
+                                    <div class="position-relative">
+                                        <img
+                                            :src="image.url"
+                                            :alt="image.alt_text"
+                                            class="img-thumbnail"
+                                            style="width: 100%; height: 150px; object-fit: cover;"
+                                        />
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                                            @click="deleteExistingImage(image.id, index)"
+                                            title="Delete"
+                                        >
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <label class="form-label">Add New Images</label>
                             <input
                                 type="file"
                                 class="form-control"
@@ -176,11 +214,8 @@
                             <div v-if="errors.images" class="text-danger small">
                                 {{ errors.images.join(', ') }}
                             </div>
-                            <div v-if="errors['images.0']" class="text-danger small">
-                                {{ errors['images.0'].join(', ') }}
-                            </div>
                             
-                            <!-- Image Preview -->
+                            <!-- New Image Preview -->
                             <div v-if="imagePreviews.length > 0" class="mt-3">
                                 <div class="row g-2">
                                     <div v-for="(preview, index) in imagePreviews" :key="index" class="col-md-2 col-sm-4 col-6">
@@ -211,7 +246,7 @@
                         </RouterLink>
                         <button class="btn btn-primary" type="submit" :disabled="isSubmitting">
                             <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                            Save Product
+                            Update Product
                         </button>
                     </div>
                 </form>
@@ -222,10 +257,13 @@
 
 <script setup>
 import axios from 'axios';
-import { reactive, ref } from 'vue';
-import { RouterLink, useRouter } from 'vue-router';
+import { reactive, ref, onMounted } from 'vue';
+import { RouterLink, useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
+const productId = route.params.id;
+
 const lookups = reactive({
     brands: [],
     categories: [],
@@ -244,12 +282,15 @@ const form = reactive({
     format_id: '',
     origin_id: '',
     status: 'ACTIVE',
+    active: true,
     images: [],
 });
 
+const existingImages = ref([]);
 const imagePreviews = ref([]);
 const errors = reactive({});
 const isSubmitting = ref(false);
+const isLoading = ref(true);
 const alert = reactive({
     type: 'success',
     message: '',
@@ -284,6 +325,46 @@ const loadLookups = async () => {
     }
 };
 
+const loadProduct = async () => {
+    isLoading.value = true;
+    try {
+        const response = await axios.get(`/api/products/${productId}`);
+        const product = response.data.data || response.data;
+        
+        form.product_title = product.product_title || '';
+        form.global_code = product.global_code || '';
+        form.description = product.description || '';
+        form.benefits = product.benefits || '';
+        form.pack_size = product.pack_size || '';
+        form.brand_id = product.brand?.id || '';
+        form.category_id = product.category?.id || '';
+        form.format_id = product.format?.id || '';
+        form.origin_id = product.origin?.id || '';
+        form.status = product.status || 'ACTIVE';
+        form.active = product.active ?? true;
+        
+        existingImages.value = product.images || [];
+    } catch (error) {
+        if (error.response?.status === 401) {
+            router.push({ name: 'login' });
+            return;
+        }
+        if (error.response?.status === 404) {
+            alert.type = 'danger';
+            alert.message = 'Product not found.';
+            setTimeout(() => {
+                router.push({ name: 'products-list' });
+            }, 2000);
+        } else {
+            alert.type = 'danger';
+            alert.message = 'Failed to load product.';
+            console.error(error);
+        }
+    } finally {
+        isLoading.value = false;
+    }
+};
+
 const handleImageSelection = (event) => {
     const files = Array.from(event.target.files);
     form.images = files;
@@ -304,19 +385,19 @@ const removeImagePreview = (index) => {
     form.images.splice(index, 1);
 };
 
-const resetForm = () => {
-    form.product_title = '';
-    form.global_code = '';
-    form.description = '';
-    form.benefits = '';
-    form.pack_size = '';
-    form.brand_id = '';
-    form.category_id = '';
-    form.format_id = '';
-    form.origin_id = '';
-    form.status = 'ACTIVE';
-    form.images = [];
-    imagePreviews.value = [];
+const deleteExistingImage = async (imageId, index) => {
+    if (!confirm('Are you sure you want to delete this image?')) {
+        return;
+    }
+
+    try {
+        await axios.delete(`/api/products/${productId}/images/${imageId}`);
+        existingImages.value.splice(index, 1);
+    } catch (error) {
+        console.error('Failed to delete image:', error);
+        alert.type = 'danger';
+        alert.message = 'Failed to delete image.';
+    }
 };
 
 const submit = async () => {
@@ -334,14 +415,14 @@ const submit = async () => {
             payload.append(key, value);
         }
     });
+    payload.append('active', form.active ? '1' : '0');
 
     try {
-        await axios.post('/api/products', payload, {
+        await axios.put(`/api/products/${productId}`, payload, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
         alert.type = 'success';
-        alert.message = 'Product created successfully.';
-        resetForm();
+        alert.message = 'Product updated successfully.';
         setTimeout(() => {
             router.push({ name: 'products-list' });
         }, 1500);
@@ -354,7 +435,7 @@ const submit = async () => {
             router.push({ name: 'login' });
         } else {
             alert.type = 'danger';
-            alert.message = 'Something went wrong while saving the product.';
+            alert.message = 'Something went wrong while updating the product.';
             console.error(error);
         }
     } finally {
@@ -362,5 +443,9 @@ const submit = async () => {
     }
 };
 
-loadLookups();
+onMounted(() => {
+    loadLookups();
+    loadProduct();
+});
 </script>
+

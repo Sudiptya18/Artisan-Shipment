@@ -24,6 +24,11 @@ class CategoryController extends Controller
             return Category::create($data);
         });
 
+        activity()
+            ->performedOn($category)
+            ->withProperties(['page' => 'categories'])
+            ->log("Category created: {$category->category_name}");
+
         return response()->json(['data' => $category], 201);
     }
 
@@ -35,19 +40,39 @@ class CategoryController extends Controller
     public function update(StoreCategoryRequest $request, Category $category)
     {
         $data = $request->validated();
+        $oldValues = $category->toArray();
 
         DB::transaction(function () use ($category, $data) {
             $category->update($data);
         });
+
+        activity()
+            ->performedOn($category)
+            ->withProperties([
+                'page' => 'categories',
+                'old' => $oldValues,
+                'attributes' => $category->fresh()->toArray(),
+            ])
+            ->log("Category updated: {$category->category_name}");
 
         return response()->json(['data' => $category->fresh()]);
     }
 
     public function destroy(Category $category)
     {
+        $categoryName = $category->category_name;
+        $categoryId = $category->id;
+        
         DB::transaction(function () use ($category) {
             $category->delete();
         });
+
+        activity()
+            ->withProperties([
+                'page' => 'categories',
+                'deleted_id' => $categoryId,
+            ])
+            ->log("Category deleted: {$categoryName}");
 
         return response()->noContent();
     }

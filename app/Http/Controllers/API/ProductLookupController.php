@@ -19,16 +19,42 @@ class ProductLookupController extends Controller
         return response()->json([
             'brands' => Brand::query()
                 ->orderBy('brand_name')
-                ->get(['id', 'brand_name as name']),
+                ->get()
+                ->map(function ($brand) {
+                    return [
+                        'id' => $brand->id,
+                        'name' => $brand->brand_name,
+                    ];
+                }),
             'categories' => Category::query()
                 ->orderBy('category_name')
-                ->get(['id', 'category_name as name', 'parent_id']),
+                ->get()
+                ->map(function ($category) {
+                    return [
+                        'id' => $category->id,
+                        'name' => $category->category_name,
+                        'parent_id' => $category->parent_id,
+                    ];
+                }),
             'formats' => Format::query()
                 ->orderBy('format_name')
-                ->get(['id', 'format_name as name']),
+                ->get()
+                ->map(function ($format) {
+                    return [
+                        'id' => $format->id,
+                        'name' => $format->format_name,
+                    ];
+                }),
             'origins' => Origin::query()
                 ->orderBy('origin_name')
-                ->get(['id', 'origin_name as name', 'iso_code']),
+                ->get()
+                ->map(function ($origin) {
+                    return [
+                        'id' => $origin->id,
+                        'name' => $origin->origin_name,
+                        'iso_code' => $origin->iso_code,
+                    ];
+                }),
         ]);
     }
 }

@@ -59,8 +59,8 @@
                 </div>
             </div>
             <div class="sb-sidenav-footer">
-                <div class="small">Logged in as:</div>
-                Artisan Shipment
+                <div class="small">All rights reserved.</div>
+                <div class="small">© {{ currentYear }} Artisan Shipment</div>
             </div>
         </nav>
     </div>
@@ -71,12 +71,14 @@ import axios from 'axios';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
+const currentYear = computed(() => new Date().getFullYear());
+
 const route = useRoute();
 const navigationItems = ref([]);
 const expandedSections = reactive({});
 
 const headingMap = [
-    { label: 'Core', keys: ['dashboard'] },
+    { label: 'Core', keys: ['dashboard', 'settings'] },
     { label: 'Interface', keys: ['layouts', 'products', 'auth', 'errors'] },
     { label: 'Addons', keys: ['charts', 'tables'] },
 ];

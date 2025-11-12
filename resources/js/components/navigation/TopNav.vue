@@ -10,14 +10,11 @@
         >
             <i class="fas fa-bars"></i>
         </button>
-        <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0" role="search">
-            <div class="input-group">
-                <input class="form-control" type="search" placeholder="Search for..." aria-label="Search" />
-                <button class="btn btn-primary" type="button">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-        </form>
+        <div class="d-none d-md-inline-block ms-auto me-0 me-md-3 my-2 my-md-0">
+            <button class="btn btn-link text-white" type="button" title="Notifications" style="background: transparent; border: none;">
+                <i class="fas fa-bell"></i>
+            </button>
+        </div>
         <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
             <li class="nav-item dropdown">
                 <a
@@ -35,15 +32,17 @@
                     <li class="dropdown-header text-muted">
                         {{ userEmail }}
                     </li>
-                    <li>
-                        <RouterLink class="dropdown-item" :to="{ name: 'dashboard' }">Dashboard</RouterLink>
+                    <li v-if="isSuperAdmin">
+                        <RouterLink class="dropdown-item" :to="{ name: 'activity-log' }">
+                            <i class="fas fa-history me-2"></i>Activity Log
+                        </RouterLink>
                     </li>
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
                         <button class="dropdown-item" type="button" @click="handleLogout">
-                            Logout
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
                         </button>
                     </li>
                 </ul>
@@ -72,9 +71,22 @@ const userName = computed(() => {
 
 const userEmail = computed(() => authStore.user?.email ?? 'Not signed in');
 
+const isSuperAdmin = computed(() => {
+    return authStore.user?.role_id === 1;
+});
+
 const handleLogout = async () => {
-    await logout();
-    router.push({ name: 'login' });
+    try {
+        await logout();
+    } catch (error) {
+        console.error('Logout error:', error);
+    } finally {
+        // Reset router's auth bootstrapped state
+        if (window.__authBootstrapped !== undefined) {
+            window.__authBootstrapped = false;
+        }
+        router.push({ name: 'login' });
+    }
 };
 </script>
 
