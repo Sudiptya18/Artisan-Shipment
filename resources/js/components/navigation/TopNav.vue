@@ -1,6 +1,9 @@
 <template>
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-        <RouterLink class="navbar-brand ps-3" :to="{ name: 'dashboard' }">Artisan Shipment</RouterLink>
+        <RouterLink class="navbar-brand ps-3 d-flex align-items-center" :to="{ name: 'dashboard' }">
+            <img :src="logoUrl" alt="Logo" class="navbar-brand-logo mx-3" />
+            <span>Artisan Shipment</span>
+        </RouterLink>
         <button
             class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0"
             id="sidebarToggle"
@@ -60,6 +63,7 @@ const emit = defineEmits(['toggle-sidebar']);
 
 const router = useRouter();
 const authStore = useAuthStore();
+const logoUrl = '/assets/img/logo.png';
 
 const userName = computed(() => {
     if (!authStore.user) {
@@ -89,4 +93,13 @@ const handleLogout = async () => {
     }
 };
 </script>
+
+<style scoped>
+.navbar-brand-logo {
+    height: 35px;
+    width: 35px;
+    margin-left: 1rem !important;
+    margin-right: 1rem !important;
+}
+</style>
 

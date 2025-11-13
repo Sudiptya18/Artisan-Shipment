@@ -133,7 +133,7 @@
                                         </select>
                                     </div>
                                 </th>
-                                <th>
+                                <th v-if="hasEditPermission">
                                     <div class="th-content">
                                         <span>Actions</span>
                                     </div>
@@ -142,13 +142,13 @@
                         </thead>
                         <tbody>
                             <tr v-if="isLoading">
-                                <td colspan="9" class="text-center py-4">
+                                <td :colspan="hasEditPermission ? 9 : 8" class="text-center py-4">
                                     <span class="spinner-border spinner-border-sm me-2"></span>
                                     Loading products...
                                 </td>
                             </tr>
                             <tr v-else-if="!products.length">
-                                <td colspan="9" class="text-center py-4 text-muted">No products found.</td>
+                                <td :colspan="hasEditPermission ? 9 : 8" class="text-center py-4 text-muted">No products found.</td>
                             </tr>
                             <tr v-for="(product, index) in products" :key="product.id">
                                 <td>{{ (pagination.current_page - 1) * pagination.per_page + index + 1 }}</td>
@@ -166,7 +166,7 @@
                                         {{ product.active ? 'Active' : 'Inactive' }}
                                     </span>
                                 </td>
-                                <td>
+                                <td v-if="hasEditPermission">
                                     <div class="d-flex gap-2 justify-content-center">
                                         <button
                                             class="btn btn-sm btn-primary"
@@ -206,6 +206,23 @@
             </div>
         </div>
     </div>
+
+    <!-- Confirm Delete Modal -->
+    <ConfirmModal
+        v-model:show="showConfirmModal"
+        title="Confirm Delete"
+        :message="confirmMessage"
+        @confirm="confirmDelete"
+        @cancel="cancelDelete"
+    />
+
+    <!-- Success Modal -->
+    <SuccessModal
+        v-model:show="showSuccessModal"
+        title="Success!"
+        message="Product deleted successfully."
+        @close="handleSuccessClose"
+    />
 </template>
 
 <script setup>
@@ -213,6 +230,8 @@ import axios from 'axios';
 import { reactive, ref, onMounted } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import VueAwesomePaginate from 'vue-awesome-paginate';
+import ConfirmModal from '@/components/ConfirmModal.vue';
+import SuccessModal from '@/components/SuccessModal.vue';
 import 'vue-awesome-paginate/dist/style.css';
 
 const router = useRouter();
@@ -358,21 +377,42 @@ const editProduct = (product) => {
     router.push({ name: 'products-edit', params: { id: product.id } });
 };
 
-const deleteProduct = async (product) => {
-    if (!confirm(`Are you sure you want to delete "${product.product_title || product.global_code}"?`)) {
-        return;
-    }
+const showConfirmModal = ref(false);
+const showSuccessModal = ref(false);
+const productToDelete = ref(null);
+const hasEditPermission = ref(false);
+const confirmMessage = ref('');
+
+const deleteProduct = (product) => {
+    productToDelete.value = product;
+    confirmMessage.value = `Are you sure you want to delete "${product.product_title || product.global_code || 'this product'}"?`;
+    showConfirmModal.value = true;
+};
+
+const confirmDelete = async () => {
+    if (!productToDelete.value) return;
 
     try {
-        await axios.delete(`/api/products/${product.id}`);
-        alert.type = 'success';
-        alert.message = 'Product deleted successfully.';
+        await axios.delete(`/api/products/${productToDelete.value.id}`);
+        showSuccessModal.value = true;
         fetchProducts(pagination.current_page);
     } catch (error) {
         console.error('Failed to delete product:', error);
         alert.type = 'danger';
         alert.message = error.response?.data?.message || 'Failed to delete product.';
+    } finally {
+        productToDelete.value = null;
+        confirmMessage.value = '';
     }
+};
+
+const cancelDelete = () => {
+    productToDelete.value = null;
+    confirmMessage.value = '';
+};
+
+const handleSuccessClose = () => {
+    showSuccessModal.value = false;
 };
 
 const alert = reactive({
@@ -380,9 +420,20 @@ const alert = reactive({
     message: '',
 });
 
+const checkEditPermission = async () => {
+    try {
+        const response = await axios.get('/api/navigations/check-permission/products-edit');
+        hasEditPermission.value = response.data.allowed || false;
+    } catch (error) {
+        console.error('Failed to check edit permission:', error);
+        hasEditPermission.value = false;
+    }
+};
+
 onMounted(() => {
     fetchLookups();
     fetchProducts();
+    checkEditPermission();
 });
 </script>
 
@@ -417,9 +468,15 @@ onMounted(() => {
 .product-list-table thead th {
     background-color: #f8f9fa;
     border-bottom: 2px solid #dee2e6;
-    padding: 12px 8px;
+    padding: 0;
     font-weight: 600;
-    vertical-align: middle;
+    vertical-align: top;
+    position: relative;
+    min-width: 120px;
+}
+
+.product-list-table thead th:first-child {
+    min-width: 80px;
 }
 
 .product-list-table tbody td {
@@ -430,12 +487,18 @@ onMounted(() => {
 .th-content {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    padding: 10px 8px;
+    width: 100%;
 }
 
 .th-content span {
     font-weight: 600;
     font-size: 0.875rem;
+    color: #212529;
+    white-space: nowrap;
+    line-height: 1.2;
+    margin-bottom: 4px;
 }
 
 .column-filter {
@@ -443,6 +506,8 @@ onMounted(() => {
     padding: 4px 8px;
     border: 1px solid #ced4da;
     border-radius: 4px;
+    width: 100%;
+    margin-top: 0;
 }
 
 .column-filter:focus {

@@ -20,6 +20,8 @@ import FormatsPage from '@/pages/formats/FormatsPage.vue';
 import OriginsPage from '@/pages/origins/OriginsPage.vue';
 import UserPagePermissionPage from '@/pages/settings/UserPagePermissionPage.vue';
 import UserRegistrationPage from '@/pages/settings/UserRegistrationPage.vue';
+import ForgetPasswordPage from '@/pages/settings/ForgetPasswordPage.vue';
+import ChangePasswordPage from '@/pages/settings/ChangePasswordPage.vue';
 import ContactAdministratorPage from '@/pages/ContactAdministratorPage.vue';
 import ActivityLogPage from '@/pages/ActivityLogPage.vue';
 
@@ -126,6 +128,18 @@ const router = createRouter({
                     name: 'user-registration',
                     component: UserRegistrationPage,
                     meta: { title: 'User Registration', requiresAuth: true },
+                },
+                {
+                    path: 'forget-password',
+                    name: 'forget-password',
+                    component: ForgetPasswordPage,
+                    meta: { title: 'Forget Password', requiresAuth: true },
+                },
+                {
+                    path: 'change-password',
+                    name: 'change-password',
+                    component: ChangePasswordPage,
+                    meta: { title: 'Change Password', requiresAuth: true },
                 },
                 {
                     path: 'contactadministrator',

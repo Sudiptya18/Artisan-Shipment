@@ -41,6 +41,11 @@ class NavigationSeeder extends Seeder
                             'route' => 'user-page-permission',
                         ],
                         [
+                            'key' => 'forget-password',
+                            'title' => 'Forget Password',
+                            'route' => 'forget-password',
+                        ],
+                        [
                             'key' => 'change-password',
                             'title' => 'Change Password',
                             'route' => 'change-password',
@@ -78,6 +83,11 @@ class NavigationSeeder extends Seeder
                             'key' => 'products-list',
                             'title' => 'Product List',
                             'route' => 'products-list',
+                        ],
+                        [
+                            'key' => 'products-edit',
+                            'title' => 'Edit Product',
+                            'route' => 'products-edit',
                         ],
                         [
                             'key' => 'brands',

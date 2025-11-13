@@ -2,7 +2,11 @@
 // Global
 // 
 
-html,
+html {
+    font-size: 12px; // Changed from default 16px (14px equivalent) to 12px (75% of 16px)
+}
+
 body {
+    font-size: 1rem; // Will be 12px based on html font-size
     height: 100%;
 }

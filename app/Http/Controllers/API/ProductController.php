@@ -85,7 +85,26 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request)
     {
+        // Additional security: Sanitize input
         $data = $request->validated();
+        
+        // Sanitize string fields
+        if (isset($data['product_title'])) {
+            $data['product_title'] = strip_tags($data['product_title']);
+        }
+        if (isset($data['description'])) {
+            $data['description'] = strip_tags($data['description']);
+        }
+        if (isset($data['benefits'])) {
+            $data['benefits'] = strip_tags($data['benefits']);
+        }
+        if (isset($data['pack_size'])) {
+            $data['pack_size'] = strip_tags($data['pack_size']);
+        }
+        if (isset($data['global_code'])) {
+            $data['global_code'] = preg_replace('/[^a-zA-Z0-9]/', '', $data['global_code']);
+        }
+        
         $images = $data['images'] ?? [];
         unset($data['images']);
 
@@ -127,7 +146,26 @@ class ProductController extends Controller
 
     public function update(StoreProductRequest $request, Product $product)
     {
+        // Additional security: Sanitize input
         $data = $request->validated();
+        
+        // Sanitize string fields
+        if (isset($data['product_title'])) {
+            $data['product_title'] = strip_tags($data['product_title']);
+        }
+        if (isset($data['description'])) {
+            $data['description'] = strip_tags($data['description']);
+        }
+        if (isset($data['benefits'])) {
+            $data['benefits'] = strip_tags($data['benefits']);
+        }
+        if (isset($data['pack_size'])) {
+            $data['pack_size'] = strip_tags($data['pack_size']);
+        }
+        if (isset($data['global_code'])) {
+            $data['global_code'] = preg_replace('/[^a-zA-Z0-9]/', '', $data['global_code']);
+        }
+        
         $images = $data['images'] ?? [];
         unset($data['images']);
 

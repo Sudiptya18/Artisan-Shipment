@@ -31,20 +31,21 @@
                                     :class="{ show: isExpanded(item.key) }"
                                 >
                                     <nav class="sb-sidenav-menu-nested nav">
-                                        <RouterLink
-                                            v-for="child in item.children"
-                                            :key="child.key"
-                                            class="nav-link"
-                                            :class="{ active: isActive(child.route) }"
-                                            :to="{ name: child.route }"
-                                        >
-                                            {{ child.title }}
-                                        </RouterLink>
+                                        <template v-for="child in item.children" :key="child.key">
+                                            <RouterLink
+                                                v-if="child.route && routeExists(child.route)"
+                                                class="nav-link"
+                                                :class="{ active: isActive(child.route) }"
+                                                :to="{ name: child.route }"
+                                            >
+                                                {{ child.title }}
+                                            </RouterLink>
+                                        </template>
                                     </nav>
                                 </div>
                             </template>
                             <RouterLink
-                                v-else
+                                v-else-if="item.route && routeExists(item.route)"
                                 class="nav-link"
                                 :class="{ active: isActive(item.route) }"
                                 :to="{ name: item.route }"
@@ -69,11 +70,12 @@
 <script setup>
 import axios from 'axios';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { RouterLink, useRoute } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 const currentYear = computed(() => new Date().getFullYear());
 
 const route = useRoute();
+const router = useRouter();
 const navigationItems = ref([]);
 const expandedSections = reactive({});
 
@@ -83,10 +85,50 @@ const headingMap = [
     { label: 'Addons', keys: ['charts', 'tables'] },
 ];
 
+// Check if a route exists
+const routeExists = (routeName) => {
+    if (!routeName) return false;
+    try {
+        router.resolve({ name: routeName });
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+// Filter navigation items to only include valid routes
+const filterValidRoutes = (items) => {
+    return items.map(item => {
+        const filtered = { ...item };
+        
+        // Check if main route exists
+        if (item.route && !routeExists(item.route)) {
+            filtered.route = null; // Mark as invalid
+        }
+        
+        // Filter children to only include valid routes
+        if (item.children && item.children.length) {
+            filtered.children = item.children.filter(child => {
+                if (!child.route) return false;
+                return routeExists(child.route);
+            });
+        }
+        
+        return filtered;
+    }).filter(item => {
+        // Remove items with no valid route and no valid children
+        if (item.route === null && (!item.children || item.children.length === 0)) {
+            return false;
+        }
+        return true;
+    });
+};
+
 const loadNavigation = async () => {
     try {
         const response = await axios.get('/api/navigations');
-        navigationItems.value = response.data.data ?? response.data ?? [];
+        const rawItems = response.data.data ?? response.data ?? [];
+        navigationItems.value = filterValidRoutes(rawItems);
         initializeExpanded();
     } catch (error) {
         console.error('Failed to load navigation', error);
@@ -120,7 +162,15 @@ const groupedNavigations = computed(() => {
 });
 
 const toggleSection = (key) => {
-    expandedSections[key] = !expandedSections[key];
+    const wasExpanded = expandedSections[key];
+    
+    // Close all other sections (accordion behavior - only one open at a time)
+    Object.keys(expandedSections).forEach((sectionKey) => {
+        expandedSections[sectionKey] = false;
+    });
+    
+    // Toggle the clicked section (open if it was closed, close if it was open)
+    expandedSections[key] = !wasExpanded;
 };
 
 const isExpanded = (key) => expandedSections[key];

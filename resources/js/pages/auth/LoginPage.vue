@@ -54,8 +54,7 @@
                         />
                         <label class="form-check-label" for="rememberPassword">Remember me</label>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
-                        <RouterLink class="small" :to="{ name: 'password' }">Forgot Password?</RouterLink>
+                    <div class="d-flex align-items-center justify-content-end mt-4 mb-0">
                         <button class="btn btn-primary" type="submit" :disabled="isSubmitting">
                             <span
                                 v-if="isSubmitting"

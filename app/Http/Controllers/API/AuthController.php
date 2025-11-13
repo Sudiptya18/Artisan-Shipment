@@ -108,4 +108,71 @@ class AuthController extends Controller
 
         return (new UserResource($user))->response()->setStatusCode(201);
     }
+
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'role_id' => ['required', 'exists:roles,id'],
+            'user_id' => ['required', 'exists:users,id'],
+            'password' => ['required', 'string', 'min:4', 'confirmed'],
+        ]);
+
+        // Verify that the user belongs to the selected role
+        $user = User::where('id', $validated['user_id'])
+            ->where('role_id', $validated['role_id'])
+            ->first();
+
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'user_id' => ['The selected user does not belong to the selected role.'],
+            ]);
+        }
+
+        // Update password
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        // Log activity
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($user)
+            ->withProperties(['page' => 'forget-password'])
+            ->log("Password reset for user: {$user->name} ({$user->username})");
+
+        return response()->json([
+            'message' => 'Password reset successfully.',
+        ]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:4', 'confirmed'],
+        ]);
+
+        $user = $request->user();
+
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'password' => ['User not authenticated.'],
+            ]);
+        }
+
+        // Update password
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        // Log activity
+        activity()
+            ->causedBy($user)
+            ->performedOn($user)
+            ->withProperties(['page' => 'change-password'])
+            ->log("Password changed for user: {$user->name} ({$user->username})");
+
+        return response()->json([
+            'message' => 'Password changed successfully.',
+        ]);
+    }
 }
