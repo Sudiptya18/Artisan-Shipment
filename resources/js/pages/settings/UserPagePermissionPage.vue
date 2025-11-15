@@ -107,11 +107,7 @@
 
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-                            <span
-                                v-if="isSubmitting"
-                                class="spinner-border spinner-border-sm me-2"
-                                role="status"
-                            ></span>
+                            <Loader v-if="isSubmitting" class="me-2" />
                             Save Permissions
                         </button>
                     </div>
@@ -162,6 +158,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import axios from 'axios';
+import Loader from '@/components/Loader.vue';
 
 const users = ref([]);
 const roles = ref([]);

@@ -28,7 +28,8 @@
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                 >
-                    <i class="fas fa-user fa-fw me-1"></i>
+                    <Loader v-if="isLoggingOut" class="me-1" />
+                    <i v-else class="fas fa-user fa-fw me-1"></i>
                     <span class="d-none d-lg-inline">{{ userName }}</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
@@ -44,7 +45,7 @@
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <button class="dropdown-item" type="button" @click="handleLogout">
+                        <button class="dropdown-item" type="button" @click="showLogoutConfirm">
                             <i class="fas fa-sign-out-alt me-2"></i>Logout
                         </button>
                     </li>
@@ -52,12 +53,23 @@
             </li>
         </ul>
     </nav>
+
+    <!-- Logout Confirmation Modal -->
+    <ConfirmModal
+        v-model:show="showLogoutModal"
+        title="Confirm Logout"
+        message="Do you want to logout?"
+        @confirm="handleLogout"
+        @cancel="showLogoutModal = false"
+    />
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import { logout, useAuthStore } from '@/stores/auth';
+import ConfirmModal from '@/components/ConfirmModal.vue';
+import Loader from '@/components/Loader.vue';
 
 const emit = defineEmits(['toggle-sidebar']);
 
@@ -79,7 +91,16 @@ const isSuperAdmin = computed(() => {
     return authStore.user?.role_id === 1;
 });
 
+const showLogoutModal = ref(false);
+const isLoggingOut = ref(false);
+
+const showLogoutConfirm = () => {
+    showLogoutModal.value = true;
+};
+
 const handleLogout = async () => {
+    isLoggingOut.value = true;
+    showLogoutModal.value = false;
     try {
         await logout();
     } catch (error) {
@@ -89,6 +110,7 @@ const handleLogout = async () => {
         if (window.__authBootstrapped !== undefined) {
             window.__authBootstrapped = false;
         }
+        isLoggingOut.value = false;
         router.push({ name: 'login' });
     }
 };

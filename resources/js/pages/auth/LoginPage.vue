@@ -56,11 +56,7 @@
                     </div>
                     <div class="d-flex align-items-center justify-content-end mt-4 mb-0">
                         <button class="btn btn-primary" type="submit" :disabled="isSubmitting">
-                            <span
-                                v-if="isSubmitting"
-                                class="spinner-border spinner-border-sm me-2"
-                                role="status"
-                            ></span>
+                            <Loader v-if="isSubmitting" class="me-2" />
                             Login
                         </button>
                     </div>
@@ -74,6 +70,7 @@
 import { reactive, ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { login } from '@/stores/auth';
+import Loader from '@/components/Loader.vue';
 
 const router = useRouter();
 

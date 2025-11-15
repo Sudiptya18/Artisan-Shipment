@@ -265,4 +265,114 @@ class ProductController extends Controller
             ]);
         }
     }
+
+    public function bulkStore(Request $request)
+    {
+        $request->validate([
+            'products' => ['required', 'array', 'min:1'],
+            'products.*.global_code' => ['required', 'string', 'max:128'],
+            'products.*.product_title' => ['nullable', 'string', 'max:512'],
+            'products.*.description' => ['nullable', 'string'],
+            'products.*.benefits' => ['nullable', 'string'],
+            'products.*.pack_size' => ['nullable', 'string', 'max:128'],
+            'products.*.brand_id' => ['nullable', 'exists:brands,id'],
+            'products.*.category_id' => ['nullable', 'exists:categories,id'],
+            'products.*.format_id' => ['nullable', 'exists:formats,id'],
+            'products.*.origin_id' => ['nullable', 'exists:origins,id'],
+            'products.*.status' => ['nullable', 'in:ACTIVE,DISCONTINUED-UI,DISCONTINUED-ARTISAN,REPLACEMENT,REPLACEMENT & DISCONTINUED,NEW CODE,FUTURE DISCONTINUED,NEW TENTATIVE'],
+            'products.*.active' => ['sometimes', 'boolean'],
+        ]);
+
+        $products = $request->input('products');
+        $created = 0;
+        $updated = 0;
+        $errors = [];
+
+        DB::beginTransaction();
+        try {
+            foreach ($products as $index => $productData) {
+                try {
+                    // Sanitize input
+                    $sanitized = [
+                        'global_code' => strip_tags(trim($productData['global_code'] ?? '')),
+                        'product_title' => isset($productData['product_title']) ? strip_tags(trim($productData['product_title'])) : null,
+                        'description' => isset($productData['description']) ? strip_tags(trim($productData['description'])) : null,
+                        'benefits' => isset($productData['benefits']) ? strip_tags(trim($productData['benefits'])) : null,
+                        'pack_size' => isset($productData['pack_size']) ? preg_replace('/[<>]/', '', trim($productData['pack_size'])) : null,
+                        'brand_id' => $productData['brand_id'] ?? null,
+                        'category_id' => $productData['category_id'] ?? null,
+                        'format_id' => $productData['format_id'] ?? null,
+                        'origin_id' => $productData['origin_id'] ?? null,
+                        'status' => $productData['status'] ?? 'ACTIVE',
+                        'active' => isset($productData['active']) ? filter_var($productData['active'], FILTER_VALIDATE_BOOLEAN) : true,
+                    ];
+
+                    if (empty($sanitized['global_code'])) {
+                        continue;
+                    }
+
+                    $productId = $productData['id'] ?? null;
+
+                    if ($productId) {
+                        // Update existing product
+                        $product = Product::find($productId);
+                        if ($product) {
+                            $product->update($sanitized);
+                            $updated++;
+
+                            // Log activity
+                            activity()
+                                ->causedBy($request->user())
+                                ->performedOn($product)
+                                ->withProperties(['page' => 'products-multiple-create'])
+                                ->log("Updated product: {$product->product_title} ({$product->global_code})");
+                        }
+                    } else {
+                        // Create new product - check if global_code already exists
+                        $existing = Product::where('global_code', $sanitized['global_code'])->first();
+                        if ($existing) {
+                            // Update existing instead of creating duplicate
+                            $existing->update($sanitized);
+                            $updated++;
+
+                            activity()
+                                ->causedBy($request->user())
+                                ->performedOn($existing)
+                                ->withProperties(['page' => 'products-multiple-create'])
+                                ->log("Updated product: {$existing->product_title} ({$existing->global_code})");
+                        } else {
+                            // Create new product
+                            $product = Product::create($sanitized);
+                            $created++;
+
+                            // Log activity
+                            activity()
+                                ->causedBy($request->user())
+                                ->performedOn($product)
+                                ->withProperties(['page' => 'products-multiple-create'])
+                                ->log("Created product: {$product->product_title} ({$product->global_code})");
+                        }
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = "Row " . ($index + 1) . ": " . $e->getMessage();
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully processed products.",
+                'created' => $created,
+                'updated' => $updated,
+                'errors' => $errors,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save products: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

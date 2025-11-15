@@ -210,7 +210,7 @@
                             Cancel
                         </RouterLink>
                         <button class="btn btn-primary" type="submit" :disabled="isSubmitting">
-                            <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <Loader v-if="isSubmitting" class="me-2" />
                             Save Product
                         </button>
                     </div>
@@ -224,6 +224,7 @@
 import axios from 'axios';
 import { reactive, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
+import Loader from '@/components/Loader.vue';
 
 const router = useRouter();
 const lookups = reactive({

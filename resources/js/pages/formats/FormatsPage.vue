@@ -36,11 +36,7 @@
                             </div>
                             <div class="mt-3">
                                 <button type="submit" class="btn btn-primary me-2" :disabled="isSubmitting">
-                                    <span
-                                        v-if="isSubmitting"
-                                        class="spinner-border spinner-border-sm me-2"
-                                        role="status"
-                                    ></span>
+                                    <Loader v-if="isSubmitting" class="me-2" />
                                     Save
                                 </button>
                                 <button type="button" class="btn btn-secondary" @click="refresh">
@@ -104,6 +100,7 @@
 import axios from 'axios';
 import { onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+import Loader from '@/components/Loader.vue';
 
 const items = ref([]);
 const form = reactive({

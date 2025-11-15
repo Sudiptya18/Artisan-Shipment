@@ -114,11 +114,7 @@
                     <div class="mt-4 mb-0">
                         <div class="d-grid">
                             <button class="btn btn-primary btn-block" type="submit" :disabled="isSubmitting">
-                                <span
-                                    v-if="isSubmitting"
-                                    class="spinner-border spinner-border-sm me-2"
-                                    role="status"
-                                ></span>
+                                <Loader v-if="isSubmitting" class="me-2" />
                                 Create Account
                             </button>
                         </div>
@@ -139,6 +135,7 @@ import axios from 'axios';
 import { reactive, ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { fetchCurrentUser } from '@/stores/auth';
+import Loader from '@/components/Loader.vue';
 
 const router = useRouter();
 

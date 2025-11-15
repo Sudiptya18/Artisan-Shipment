@@ -7,10 +7,12 @@
         "dev": "vite"
     },
     "dependencies": {
+        "@handsontable/vue3": "^16.1.1",
         "@popperjs/core": "^2.11.8",
         "axios": "^1.11.0",
         "bootstrap": "^5.3.3",
         "chart.js": "^4.4.6",
+        "handsontable": "^16.1.1",
         "simple-datatables": "^9.2.1",
         "vue": "^3.5.12",
         "vue-awesome-paginate": "^1.2.0",

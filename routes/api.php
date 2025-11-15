@@ -27,6 +27,7 @@ Route::prefix('products')->group(function () {
     Route::get('/lookups', ProductLookupController::class)->middleware('auth:sanctum');
     Route::get('/', [ProductController::class, 'index'])->middleware('auth:sanctum');
     Route::post('/', [ProductController::class, 'store'])->middleware('auth:sanctum');
+    Route::post('/bulk', [ProductController::class, 'bulkStore'])->middleware('auth:sanctum');
     Route::get('/{product}', [ProductController::class, 'show'])->middleware('auth:sanctum');
     Route::put('/{product}', [ProductController::class, 'update'])->middleware('auth:sanctum');
     Route::delete('/{product}', [ProductController::class, 'destroy'])->middleware('auth:sanctum');

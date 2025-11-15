@@ -45,11 +45,7 @@
                         </div>
                         <div class="d-flex justify-content-center mt-4">
                             <button class="btn btn-teal text-white w-100" type="submit" :disabled="isSubmitting" style="background-color: #20b2aa; border-color: #20b2aa;">
-                                <span
-                                    v-if="isSubmitting"
-                                    class="spinner-border spinner-border-sm me-2"
-                                    role="status"
-                                ></span>
+                                <Loader v-if="isSubmitting" class="me-2" />
                                 Change Password
                             </button>
                         </div>
@@ -72,6 +68,7 @@
 import axios from 'axios';
 import { reactive, ref, onMounted } from 'vue';
 import SuccessModal from '@/components/SuccessModal.vue';
+import Loader from '@/components/Loader.vue';
 
 const logoUrl = '/assets/img/logo.png';
 

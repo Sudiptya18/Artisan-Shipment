@@ -9,7 +9,7 @@
         </div>
 
         <div v-if="isLoading" class="text-center py-5">
-            <span class="spinner-border spinner-border-sm me-2"></span>
+            <Loader class="me-2" />
             Loading product...
         </div>
 
@@ -245,7 +245,7 @@
                             Cancel
                         </RouterLink>
                         <button class="btn btn-primary" type="submit" :disabled="isSubmitting">
-                            <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <Loader v-if="isSubmitting" class="me-2" />
                             Update Product
                         </button>
                     </div>
@@ -259,6 +259,7 @@
 import axios from 'axios';
 import { reactive, ref, onMounted } from 'vue';
 import { RouterLink, useRouter, useRoute } from 'vue-router';
+import Loader from '@/components/Loader.vue';
 
 const router = useRouter();
 const route = useRoute();

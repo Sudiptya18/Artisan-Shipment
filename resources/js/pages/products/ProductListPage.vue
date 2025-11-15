@@ -4,6 +4,9 @@
         <div class="d-flex align-items-center justify-content-between my-4">
             <h1 class="mb-0">Product List</h1>
             <div class="d-flex align-items-center gap-3">
+                <span class="text-muted showing-text">
+                    Showing {{ showingCount }}  out of {{ pagination.total }}
+                </span>
                 <div class="search-box">
                     <input
                         v-model="filters.search"
@@ -13,8 +16,24 @@
                         @input="debouncedSearch"
                     />
                 </div>
-                <RouterLink :to="{ name: 'products-create' }" class="btn-add-product">
+                <select v-model="pagination.per_page" class="form-select" style="width: auto;" @change="handlePerPageChange">
+                    <option :value="20">20 per page</option>
+                    <option :value="50">50 per page</option>
+                    <option :value="100">100 per page</option>
+                    <option :value="150">150 per page</option>
+                    <option :value="200">200 per page</option>
+                    <option :value="0">All</option>
+                </select>
+                <RouterLink :to="{ name: 'products-create' }" class="btn-add-product" title="Add Single Product">
                     <i class="fas fa-plus"></i>
+                </RouterLink>
+                <RouterLink :to="{ name: 'products-multiple-create' }" class="btn-add-product btn-multiple-add" title="Add Multiple Products">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="display: inline-block;">
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" transform="translate(4, 4)"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" transform="translate(-4, 4)"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" transform="translate(4, -4)"/>
+                    </svg>
                 </RouterLink>
             </div>
         </div>
@@ -30,110 +49,103 @@
                     <table class="table table-hover mb-0 product-list-table">
                         <thead>
                             <tr>
-                                <th>
+                                <th class="text-center">
                                     <div class="th-content">
                                         <span>Serial</span>
                                     </div>
                                 </th>
-                                <th>
+                                <th class="text-center">
                                     <div class="th-content">
-                                        <span>Global Code</span>
                                         <input
                                             v-model="columnFilters.global_code"
                                             type="text"
                                             class="form-control form-control-sm column-filter"
-                                            placeholder="Filter Global Code..."
+                                            placeholder="Global Code..."
                                             @input="debouncedColumnFilter"
                                         />
                                     </div>
                                 </th>
-                                <th>
+                                <th class="text-center">
                                     <div class="th-content">
-                                        <span>Product Title</span>
                                         <input
                                             v-model="columnFilters.product_title"
                                             type="text"
                                             class="form-control form-control-sm column-filter"
-                                            placeholder="Filter Title..."
+                                            placeholder="Product Title..."
                                             @input="debouncedColumnFilter"
                                         />
                                     </div>
                                 </th>
-                                <th>
+                                <th class="text-center">
                                     <div class="th-content">
-                                        <span>Brand</span>
                                         <select
                                             v-model="columnFilters.brand_id"
                                             class="form-control form-control-sm column-filter"
                                             @change="handleColumnFilter"
                                         >
-                                            <option value="">All Brands</option>
+                                            <option value="">Brands</option>
                                             <option v-for="brand in brands" :key="brand.id" :value="brand.id">
                                                 {{ brand.name }}
                                             </option>
                                         </select>
                                     </div>
                                 </th>
-                                <th>
+                                <th class="text-center">
                                     <div class="th-content">
-                                        <span>Category</span>
                                         <select
                                             v-model="columnFilters.category_id"
                                             class="form-control form-control-sm column-filter"
                                             @change="handleColumnFilter"
                                         >
-                                            <option value="">All Categories</option>
+                                            <option value="">Categories</option>
                                             <option v-for="category in categories" :key="category.id" :value="category.id">
                                                 {{ category.name }}
                                             </option>
                                         </select>
                                     </div>
                                 </th>
-                                <th>
+                                <th class="text-center">
                                     <div class="th-content">
-                                        <span>Format</span>
                                         <select
                                             v-model="columnFilters.format_id"
                                             class="form-control form-control-sm column-filter"
                                             @change="handleColumnFilter"
                                         >
-                                            <option value="">All Formats</option>
+                                            <option value="">Formats</option>
                                             <option v-for="format in formats" :key="format.id" :value="format.id">
                                                 {{ format.name }}
                                             </option>
                                         </select>
                                     </div>
                                 </th>
-                                <th>
+                                <th class="text-center">
                                     <div class="th-content">
-                                        <span>Origin</span>
                                         <select
                                             v-model="columnFilters.origin_id"
                                             class="form-control form-control-sm column-filter"
                                             @change="handleColumnFilter"
                                         >
-                                            <option value="">All Origins</option>
+                                            <option value="">Origins</option>
                                             <option v-for="origin in origins" :key="origin.id" :value="origin.id">
                                                 {{ origin.name }}
                                             </option>
                                         </select>
                                     </div>
                                 </th>
-                                <th>
+                                <th class="text-center">
                                     <div class="th-content">
-                                        <span>Status</span>
                                         <select
                                             v-model="columnFilters.active"
                                             class="form-control form-control-sm column-filter"
                                             @change="handleColumnFilter"
                                         >
-                                            <option value="">All</option>
+                                            <option value="">Status</option>
                                             <option value="1">Active</option>
                                             <option value="0">Inactive</option>
                                         </select>
                                     </div>
                                 </th>
-                                <th v-if="hasEditPermission">
+                                <th v-if="hasEditPermission" class="text-center">
                                     <div class="th-content">
                                         <span>Actions</span>
                                     </div>
@@ -143,7 +155,7 @@
                         <tbody>
                             <tr v-if="isLoading">
                                 <td :colspan="hasEditPermission ? 9 : 8" class="text-center py-4">
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <Loader class="me-2" />
                                     Loading products...
                                 </td>
                             </tr>
@@ -151,14 +163,14 @@
                                 <td :colspan="hasEditPermission ? 9 : 8" class="text-center py-4 text-muted">No products found.</td>
                             </tr>
                             <tr v-for="(product, index) in products" :key="product.id">
-                                <td>{{ (pagination.current_page - 1) * pagination.per_page + index + 1 }}</td>
-                                <td>{{ product.global_code || '—' }}</td>
-                                <td>{{ product.product_title || '—' }}</td>
-                                <td>{{ product.brand?.name || '—' }}</td>
-                                <td>{{ product.category?.name || '—' }}</td>
-                                <td>{{ product.format?.name || '—' }}</td>
-                                <td>{{ product.origin?.name || '—' }}</td>
-                                <td>
+                                <td class="text-center">{{ (pagination.current_page - 1) * pagination.per_page + index + 1 }}</td>
+                                <td class="text-center">{{ product.global_code || '—' }}</td>
+                                <td class="text-center">{{ product.product_title || '—' }}</td>
+                                <td class="text-center">{{ product.brand?.name || '—' }}</td>
+                                <td class="text-center">{{ product.category?.name || '—' }}</td>
+                                <td class="text-center">{{ product.format?.name || '—' }}</td>
+                                <td class="text-center">{{ product.origin?.name || '—' }}</td>
+                                <td class="text-center">
                                     <span
                                         class="badge"
                                         :class="product.active ? 'bg-success' : 'bg-secondary'"
@@ -166,7 +178,7 @@
                                         {{ product.active ? 'Active' : 'Inactive' }}
                                     </span>
                                 </td>
-                                <td v-if="hasEditPermission">
+                                <td v-if="hasEditPermission" class="text-center">
                                     <div class="d-flex gap-2 justify-content-center">
                                         <button
                                             class="btn btn-sm btn-primary"
@@ -190,16 +202,19 @@
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="pagination.last_page > 1" class="d-flex justify-content-center p-3 border-top">
+                <div v-if="pagination.last_page > 1 && pagination.per_page > 0" class="d-flex justify-content-center p-3 border-top">
                     <vue-awesome-paginate
                         :total-items="pagination.total || 0"
                         v-model="pagination.current_page"
                         :items-per-page="pagination.per_page"
                         :max-pages-shown="5"
+                        :show-first-last-button="true"
                         paginate-buttons-class="btn"
                         active-page-class="btn-active"
                         back-button-class="back-btn"
                         next-button-class="next-btn"
+                        first-button-class="back-btn"
+                        last-button-class="next-btn"
                         @click="handlePageChange"
                     />
                 </div>
@@ -227,11 +242,12 @@
 
 <script setup>
 import axios from 'axios';
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted, computed } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import VueAwesomePaginate from 'vue-awesome-paginate';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import SuccessModal from '@/components/SuccessModal.vue';
+import Loader from '@/components/Loader.vue';
 import 'vue-awesome-paginate/dist/style.css';
 
 const router = useRouter();
@@ -262,6 +278,16 @@ const pagination = reactive({
     total: 0,
 });
 
+const showingCount = computed(() => {
+    if (pagination.per_page === 0) {
+        return pagination.total;
+    }
+    const start = (pagination.current_page - 1) * pagination.per_page + 1;
+    const end = Math.min(pagination.current_page * pagination.per_page, pagination.total);
+    if (start > end) return 0;
+    return end - start + 1;
+});
+
 const isLoading = ref(false);
 let searchTimeout = null;
 let columnFilterTimeout = null;
@@ -283,8 +309,12 @@ const fetchProducts = async (page = 1) => {
     try {
         const params = {
             per_page: pagination.per_page,
-            page: page,
         };
+
+        // Only add page parameter if per_page > 0
+        if (pagination.per_page > 0) {
+            params.page = page;
+        }
 
         // Add search filter
         if (filters.search) {
@@ -369,6 +399,11 @@ const debouncedColumnFilter = () => {
 };
 
 const handleColumnFilter = () => {
+    pagination.current_page = 1;
+    fetchProducts(1);
+};
+
+const handlePerPageChange = () => {
     pagination.current_page = 1;
     fetchProducts(1);
 };
@@ -461,6 +496,20 @@ onMounted(() => {
     color: white;
 }
 
+.btn-multiple-add {
+    background-color: #17a2b8;
+}
+
+.btn-multiple-add:hover {
+    background-color: #138496;
+    color: white;
+}
+
+.btn-multiple-add svg {
+    width: 16px;
+    height: 16px;
+}
+
 .product-list-table {
     font-size: 0.9rem;
 }
@@ -487,9 +536,11 @@ onMounted(() => {
 .th-content {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0;
     padding: 10px 8px;
     width: 100%;
+    align-items: center;
+    justify-content: center;
 }
 
 .th-content span {
@@ -498,7 +549,6 @@ onMounted(() => {
     color: #212529;
     white-space: nowrap;
     line-height: 1.2;
-    margin-bottom: 4px;
 }
 
 .column-filter {
