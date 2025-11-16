@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FormatController;
 use App\Http\Controllers\API\NavigationController;
 use App\Http\Controllers\API\OriginController;
@@ -22,6 +23,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('/navigations', [NavigationController::class, 'index'])->middleware('auth:sanctum');
 Route::get('/navigations/check-permission/{routeName}', [NavigationController::class, 'checkRoutePermission'])->middleware('auth:sanctum');
+
+Route::prefix('dashboard')->middleware('auth:sanctum')->group(function () {
+    Route::get('/total-products', [DashboardController::class, 'totalProducts']);
+    Route::get('/total-brands', [DashboardController::class, 'totalBrands']);
+    Route::get('/total-categories', [DashboardController::class, 'totalCategories']);
+    Route::get('/total-formats', [DashboardController::class, 'totalFormats']);
+    Route::get('/products-by-brand', [DashboardController::class, 'productsByBrand']);
+});
 
 Route::prefix('products')->group(function () {
     Route::get('/lookups', ProductLookupController::class)->middleware('auth:sanctum');

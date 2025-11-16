@@ -55,19 +55,12 @@
         </div>
     </div>
 
-    <!-- Success Modal -->
-    <SuccessModal
-        v-model:show="showSuccessModal"
-        title="Success!"
-        message="Password changed successfully."
-        @close="handleSuccessClose"
-    />
 </template>
 
 <script setup>
 import axios from 'axios';
 import { reactive, ref, onMounted } from 'vue';
-import SuccessModal from '@/components/SuccessModal.vue';
+import Swal from 'sweetalert2';
 import Loader from '@/components/Loader.vue';
 
 const logoUrl = '/assets/img/logo.png';
@@ -79,7 +72,6 @@ const form = reactive({
 
 const errors = reactive({});
 const isSubmitting = ref(false);
-const showSuccessModal = ref(false);
 const alert = reactive({
     type: 'success',
     message: '',
@@ -92,7 +84,12 @@ const submit = async () => {
 
     try {
         await axios.post('/api/auth/change-password', form);
-        showSuccessModal.value = true;
+        
+        Swal.fire({
+            title: 'Success!',
+            text: 'Password changed successfully.',
+            icon: 'success'
+        });
         
         // Reset form
         form.password = '';
@@ -115,9 +112,6 @@ const submit = async () => {
     }
 };
 
-const handleSuccessClose = () => {
-    showSuccessModal.value = false;
-};
 </script>
 
 <style scoped>

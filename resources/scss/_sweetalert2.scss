@@ -1,0 +1,24 @@
+// SweetAlert2 Custom Styles
+.swal2-popup {
+    font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+// Toast container should be below topnav (z-index: 1039)
+.swal2-container.swal2-top-end {
+    z-index: 1038 !important; // Below topnav (1039)
+    top: 56px !important; // Topnav height
+    padding-top: 1rem;
+}
+
+.swal2-container.swal2-top {
+    z-index: 1038 !important; // Below topnav (1039)
+    top: 56px !important; // Topnav height
+    padding-top: 1rem;
+}
+
+.swal2-container.swal2-top-start {
+    z-index: 1038 !important; // Below topnav (1039)
+    top: 56px !important; // Topnav height
+    padding-top: 1rem;
+}
+

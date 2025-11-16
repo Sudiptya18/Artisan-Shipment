@@ -43,21 +43,6 @@
             </div>
         </div>
 
-        <!-- Success Modal -->
-        <SuccessModal
-            v-model:show="showSuccessModal"
-            title="Success!"
-            :message="successMessage"
-            @close="handleModalClose"
-        />
-
-        <!-- Failed Modal -->
-        <FailedModal
-            v-model:show="showFailedModal"
-            title="Failed!"
-            :message="failedMessage"
-            @close="handleModalClose"
-        />
     </div>
 </template>
 
@@ -68,8 +53,7 @@ import axios from 'axios';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
-import SuccessModal from '@/components/SuccessModal.vue';
-import FailedModal from '@/components/FailedModal.vue';
+import Swal from 'sweetalert2';
 import Loader from '@/components/Loader.vue';
 
 registerAllModules();
@@ -78,12 +62,7 @@ const router = useRouter();
 const hotTableComponent = ref(null);
 const isSaving = ref(false);
 const isLoading = ref(false);
-const showSuccessModal = ref(false);
-const showFailedModal = ref(false);
-const successMessage = ref('');
-const failedMessage = ref('');
 const tableData = ref([{}]);
-let modalTimeout = null;
 
 const alert = reactive({
     type: '',
@@ -433,36 +412,35 @@ const saveProducts = async () => {
 
         if (response.data.success) {
             isSaving.value = false; // Hide preloader
-            successMessage.value = `Successfully ${response.data.created > 0 ? `created ${response.data.created} product(s)` : ''}${response.data.created > 0 && response.data.updated > 0 ? ' and ' : ''}${response.data.updated > 0 ? `updated ${response.data.updated} product(s)` : ''}.`;
-            showSuccessModal.value = true;
-
-            // Auto-close modal after 5 seconds and reload
-            clearTimeout(modalTimeout);
-            modalTimeout = setTimeout(() => {
-                showSuccessModal.value = false;
+            const message = `Successfully ${response.data.created > 0 ? `created ${response.data.created} product(s)` : ''}${response.data.created > 0 && response.data.updated > 0 ? ' and ' : ''}${response.data.updated > 0 ? `updated ${response.data.updated} product(s)` : ''}.`;
+            
+            Swal.fire({
+                title: 'Success!',
+                text: message,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                timer: 5000,
+                timerProgressBar: true
+            }).then(() => {
                 window.location.reload();
-            }, 5000);
+            });
         }
     } catch (error) {
         console.error('Failed to save products:', error);
         isSaving.value = false; // Hide preloader
-        failedMessage.value = error.response?.data?.message || 'Failed to save products. Please check your data.';
-        showFailedModal.value = true;
-
-        // Auto-close modal after 5 seconds and reload
-        clearTimeout(modalTimeout);
-        modalTimeout = setTimeout(() => {
-            showFailedModal.value = false;
+        const errorMessage = error.response?.data?.message || 'Failed to save products. Please check your data.';
+        
+        Swal.fire({
+            title: 'Failed!',
+            text: errorMessage,
+            icon: 'error',
+            confirmButtonText: 'OK',
+            timer: 5000,
+            timerProgressBar: true
+        }).then(() => {
             window.location.reload();
-        }, 5000);
+        });
     }
-};
-
-const handleModalClose = () => {
-    clearTimeout(modalTimeout);
-    showSuccessModal.value = false;
-    showFailedModal.value = false;
-    window.location.reload();
 };
 
 onMounted(async () => {

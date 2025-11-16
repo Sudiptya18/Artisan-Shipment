@@ -115,42 +115,6 @@
             </div>
         </div>
 
-        <!-- Success/Failed Modal -->
-        <div
-            v-if="showModal"
-            class="modal fade show"
-            :class="{ 'd-block': showModal }"
-            tabindex="-1"
-            role="dialog"
-            style="background-color: rgba(0, 0, 0, 0.5);"
-        >
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-body text-center p-5">
-                        <div v-if="modalSuccess" class="mb-3">
-                            <div class="success-icon">
-                                <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
-                            </div>
-                        </div>
-                        <div v-else class="mb-3">
-                            <div class="error-icon">
-                                <i class="fas fa-times-circle text-danger" style="font-size: 4rem;"></i>
-                            </div>
-                        </div>
-                        <h4 :class="modalSuccess ? 'text-success' : 'text-danger'">
-                            {{ modalMessage }}
-                        </h4>
-                        <button
-                            type="button"
-                            class="btn btn-primary mt-4"
-                            @click="closeModal"
-                        >
-                            OK
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 
@@ -158,6 +122,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import Loader from '@/components/Loader.vue';
 
 const users = ref([]);
@@ -172,9 +137,19 @@ const form = reactive({
 
 const errors = reactive({});
 const isSubmitting = ref(false);
-const showModal = ref(false);
-const modalSuccess = ref(false);
-const modalMessage = ref('');
+
+// SweetAlert2 Toast Mixin
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+    }
+});
 
 const fetchUsers = async () => {
     try {
@@ -365,44 +340,31 @@ const savePermissions = async () => {
         });
 
         if (response.data.success) {
-            modalSuccess.value = true;
-            modalMessage.value = response.data.message || 'Permissions set successfully!';
-            showModal.value = true;
-
-            // Auto close after 5 seconds
-            setTimeout(() => {
-                closeModal();
-            }, 5000);
+            // Show success toast
+            Toast.fire({
+                icon: 'success',
+                title: 'Permissions set successfully!'
+            });
         } else {
-            modalSuccess.value = false;
-            modalMessage.value = response.data.message || 'Failed to set permissions.';
-            showModal.value = true;
-
-            setTimeout(() => {
-                closeModal();
-            }, 5000);
+            // Show error toast
+            Toast.fire({
+                icon: 'error',
+                title: response.data.message || 'Failed to set permissions.'
+            });
         }
     } catch (error) {
         if (error.response?.status === 422) {
             Object.assign(errors, error.response.data.errors);
         }
 
-        modalSuccess.value = false;
-        modalMessage.value =
-            error.response?.data?.message || 'An error occurred while setting permissions.';
-        showModal.value = true;
-
-        setTimeout(() => {
-            closeModal();
-        }, 5000);
+        // Show error toast
+        Toast.fire({
+            icon: 'error',
+            title: error.response?.data?.message || 'An error occurred while setting permissions.'
+        });
     } finally {
         isSubmitting.value = false;
     }
-};
-
-const closeModal = () => {
-    showModal.value = false;
-    modalMessage.value = '';
 };
 
 onMounted(() => {
@@ -412,25 +374,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-.success-icon,
-.error-icon {
-    animation: scaleIn 0.5s ease-out;
-}
-
-@keyframes scaleIn {
-    from {
-        transform: scale(0);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.modal.show {
-    display: block;
-}
-</style>
 

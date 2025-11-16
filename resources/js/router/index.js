@@ -15,10 +15,10 @@ import ProductCreatePage from '@/pages/products/ProductCreatePage.vue';
 import ProductEditPage from '@/pages/products/ProductEditPage.vue';
 import ProductListPage from '@/pages/products/ProductListPage.vue';
 import ProductMultipleCreatePage from '@/pages/products/ProductMultipleCreatePage.vue';
-import BrandsPage from '@/pages/brands/BrandsPage.vue';
-import CategoriesPage from '@/pages/categories/CategoriesPage.vue';
-import FormatsPage from '@/pages/formats/FormatsPage.vue';
-import OriginsPage from '@/pages/origins/OriginsPage.vue';
+import BrandsPage from '@/pages/products/brands/BrandsPage.vue';
+import CategoriesPage from '@/pages/products/categories/CategoriesPage.vue';
+import FormatsPage from '@/pages/products/formats/FormatsPage.vue';
+import OriginsPage from '@/pages/products/origins/OriginsPage.vue';
 import UserPagePermissionPage from '@/pages/settings/UserPagePermissionPage.vue';
 import UserRegistrationPage from '@/pages/settings/UserRegistrationPage.vue';
 import ForgetPasswordPage from '@/pages/settings/ForgetPasswordPage.vue';
@@ -101,25 +101,25 @@ const router = createRouter({
                     meta: { title: 'Products', requiresAuth: true },
                 },
                 {
-                    path: 'brands',
+                    path: 'products/brands',
                     name: 'brands',
                     component: BrandsPage,
                     meta: { title: 'Add Brands', requiresAuth: true },
                 },
                 {
-                    path: 'categories',
+                    path: 'products/categories',
                     name: 'categories',
                     component: CategoriesPage,
                     meta: { title: 'Add Categories', requiresAuth: true },
                 },
                 {
-                    path: 'formats',
+                    path: 'products/formats',
                     name: 'formats',
                     component: FormatsPage,
                     meta: { title: 'Add Format', requiresAuth: true },
                 },
                 {
-                    path: 'origins',
+                    path: 'products/origins',
                     name: 'origins',
                     component: OriginsPage,
                     meta: { title: 'Add Country of Origin', requiresAuth: true },

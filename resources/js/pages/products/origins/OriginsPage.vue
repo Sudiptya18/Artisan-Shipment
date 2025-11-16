@@ -2,7 +2,7 @@
     <div class="container-fluid px-4">
         <div class="d-flex align-items-center justify-content-between my-4">
             <div>
-                <h1 class="mt-2">Add Country of Origin</h1>
+                <h1 class="mt-2">Country of Origin</h1>
             </div>
         </div>
 
@@ -11,7 +11,7 @@
             <div class="col-lg-12 mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">Insertion</h5>
+                        <h5 class="mb-0">Create Country of Origin</h5>
                     </div>
                     <div class="card-body">
                         <div v-if="alert.message" :class="`alert alert-${alert.type}`" role="alert">
@@ -20,7 +20,6 @@
                         <form @submit.prevent="save">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <label class="form-label">Name:</label>
                                     <input
                                         v-model="form.origin_name"
                                         type="text"
@@ -34,7 +33,6 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">ISO Code (Optional):</label>
                                     <input
                                         v-model="form.iso_code"
                                         type="text"

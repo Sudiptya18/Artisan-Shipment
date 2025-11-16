@@ -2,7 +2,7 @@
     <div class="container-fluid px-4">
         <div class="d-flex align-items-center justify-content-between my-4">
             <div>
-                <h1 class="mt-2">Add Format</h1>
+                <h1 class="mt-2">Categories</h1>
             </div>
         </div>
 
@@ -11,7 +11,7 @@
             <div class="col-lg-12 mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">Insertion</h5>
+                        <h5 class="mb-0">Create Category</h5>
                     </div>
                     <div class="card-body">
                         <div v-if="alert.message" :class="`alert alert-${alert.type}`" role="alert">
@@ -20,17 +20,16 @@
                         <form @submit.prevent="save">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <label class="form-label">Name:</label>
                                     <input
-                                        v-model="form.format_name"
+                                        v-model="form.category_name"
                                         type="text"
                                         class="form-control"
-                                        :class="{ 'is-invalid': errors.format_name }"
-                                        placeholder="Enter format name"
+                                        :class="{ 'is-invalid': errors.category_name }"
+                                        placeholder="Enter category name"
                                         required
                                     />
-                                    <div v-if="errors.format_name" class="invalid-feedback">
-                                        {{ errors.format_name.join(', ') }}
+                                    <div v-if="errors.category_name" class="invalid-feedback">
+                                        {{ errors.category_name.join(', ') }}
                                     </div>
                                 </div>
                             </div>
@@ -66,11 +65,11 @@
                                 </thead>
                                 <tbody>
                                     <tr v-if="items.length === 0">
-                                        <td colspan="3" class="text-center">No formats found</td>
+                                        <td colspan="3" class="text-center">No categories found</td>
                                     </tr>
                                     <tr v-for="(item, index) in items" :key="item.id">
                                         <td class="text-center">{{ index + 1 }}</td>
-                                        <td class="text-center">{{ item.format_name }}</td>
+                                        <td class="text-center">{{ item.category_name }}</td>
                                         <td class="text-center">
                                             <button
                                                 class="btn btn-sm btn-primary me-1"
@@ -104,7 +103,7 @@ import Loader from '@/components/Loader.vue';
 
 const items = ref([]);
 const form = reactive({
-    format_name: '',
+    category_name: '',
 });
 const errors = reactive({});
 const isSubmitting = ref(false);
@@ -116,12 +115,12 @@ const alert = reactive({
 
 const loadItems = async () => {
     try {
-        const response = await axios.get('/api/formats');
+        const response = await axios.get('/api/categories');
         items.value = response.data.data || [];
     } catch (error) {
-        console.error('Failed to load formats', error);
+        console.error('Failed to load categories', error);
         alert.type = 'danger';
-        alert.message = 'Failed to load formats.';
+        alert.message = 'Failed to load categories.';
     }
 };
 
@@ -132,14 +131,14 @@ const save = async () => {
 
     try {
         if (editingId.value) {
-            await axios.put(`/api/formats/${editingId.value}`, form);
-            alert.message = 'Format updated successfully!';
+            await axios.put(`/api/categories/${editingId.value}`, form);
+            alert.message = 'Category updated successfully!';
         } else {
-            await axios.post('/api/formats', form);
-            alert.message = 'Format created successfully!';
+            await axios.post('/api/categories', form);
+            alert.message = 'Category created successfully!';
         }
         alert.type = 'success';
-        form.format_name = '';
+        form.category_name = '';
         editingId.value = null;
         await loadItems();
     } catch (error) {
@@ -149,7 +148,7 @@ const save = async () => {
             alert.message = 'Please correct the errors below.';
         } else {
             alert.type = 'danger';
-            alert.message = error.response?.data?.message || 'Failed to save format.';
+            alert.message = error.response?.data?.message || 'Failed to save category.';
         }
     } finally {
         isSubmitting.value = false;
@@ -157,29 +156,29 @@ const save = async () => {
 };
 
 const edit = (item) => {
-    form.format_name = item.format_name;
+    form.category_name = item.category_name;
     editingId.value = item.id;
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const confirmDelete = async (item) => {
-    if (!confirm(`Are you sure you want to delete "${item.format_name}"?`)) {
+    if (!confirm(`Are you sure you want to delete "${item.category_name}"?`)) {
         return;
     }
 
     try {
-        await axios.delete(`/api/formats/${item.id}`);
+        await axios.delete(`/api/categories/${item.id}`);
         alert.type = 'success';
-        alert.message = 'Format deleted successfully!';
+        alert.message = 'Category deleted successfully!';
         await loadItems();
     } catch (error) {
         alert.type = 'danger';
-        alert.message = error.response?.data?.message || 'Failed to delete format.';
+        alert.message = error.response?.data?.message || 'Failed to delete category.';
     }
 };
 
 const refresh = () => {
-    form.format_name = '';
+    form.category_name = '';
     editingId.value = null;
     alert.message = '';
     Object.keys(errors).forEach((key) => delete errors[key]);

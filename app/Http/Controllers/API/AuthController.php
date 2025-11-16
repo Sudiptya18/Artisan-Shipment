@@ -96,15 +96,15 @@ class AuthController extends Controller
             return User::create($data);
         });
 
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        // Log registration activity
-        activity()
-            ->causedBy($user)
-            ->performedOn($user)
-            ->withProperties(['page' => 'user-registration'])
-            ->log("New user registered: {$user->name} ({$user->username})");
+        // Log registration activity (caused by the current authenticated user, not the new user)
+        $currentUser = $request->user();
+        if ($currentUser) {
+            activity()
+                ->causedBy($currentUser)
+                ->performedOn($user)
+                ->withProperties(['page' => 'user-registration'])
+                ->log("New user registered: {$user->name} ({$user->username})");
+        }
 
         return (new UserResource($user))->response()->setStatusCode(201);
     }
@@ -114,7 +114,41 @@ class AuthController extends Controller
         $validated = $request->validate([
             'role_id' => ['required', 'exists:roles,id'],
             'user_id' => ['required', 'exists:users,id'],
-            'password' => ['required', 'string', 'min:4', 'confirmed'],
+            'password' => [
+                'required',
+                'string',
+                'min:4',
+                'confirmed',
+                function ($attribute, $value, $fail) {
+                    // Check if password is all digits
+                    if (!ctype_digit($value)) {
+                        $fail('The password must contain only digits.');
+                        return;
+                    }
+                    
+                    // Check for sequential patterns (1234, 4321, etc.) only if length is 4
+                    if (strlen($value) === 4) {
+                        $digits = str_split($value);
+                        $isSequential = true;
+                        $isReverseSequential = true;
+                        
+                        for ($i = 1; $i < count($digits); $i++) {
+                            // Check forward sequence
+                            if ((int)$digits[$i] !== (int)$digits[$i - 1] + 1) {
+                                $isSequential = false;
+                            }
+                            // Check reverse sequence
+                            if ((int)$digits[$i] !== (int)$digits[$i - 1] - 1) {
+                                $isReverseSequential = false;
+                            }
+                        }
+                        
+                        if ($isSequential || $isReverseSequential) {
+                            $fail('The password cannot be a sequence like 1234 or 4321.');
+                        }
+                    }
+                },
+            ],
         ]);
 
         // Verify that the user belongs to the selected role
@@ -148,7 +182,41 @@ class AuthController extends Controller
     public function changePassword(Request $request)
     {
         $validated = $request->validate([
-            'password' => ['required', 'string', 'min:4', 'confirmed'],
+            'password' => [
+                'required',
+                'string',
+                'min:4',
+                'confirmed',
+                function ($attribute, $value, $fail) {
+                    // Check if password is all digits
+                    if (!ctype_digit($value)) {
+                        $fail('The password must contain only digits.');
+                        return;
+                    }
+                    
+                    // Check for sequential patterns (1234, 4321, etc.) only if length is 4
+                    if (strlen($value) === 4) {
+                        $digits = str_split($value);
+                        $isSequential = true;
+                        $isReverseSequential = true;
+                        
+                        for ($i = 1; $i < count($digits); $i++) {
+                            // Check forward sequence
+                            if ((int)$digits[$i] !== (int)$digits[$i - 1] + 1) {
+                                $isSequential = false;
+                            }
+                            // Check reverse sequence
+                            if ((int)$digits[$i] !== (int)$digits[$i - 1] - 1) {
+                                $isReverseSequential = false;
+                            }
+                        }
+                        
+                        if ($isSequential || $isReverseSequential) {
+                            $fail('The password cannot be a sequence like 1234 or 4321.');
+                        }
+                    }
+                },
+            ],
         ]);
 
         $user = $request->user();

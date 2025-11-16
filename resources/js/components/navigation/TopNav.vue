@@ -54,21 +54,13 @@
         </ul>
     </nav>
 
-    <!-- Logout Confirmation Modal -->
-    <ConfirmModal
-        v-model:show="showLogoutModal"
-        title="Confirm Logout"
-        message="Do you want to logout?"
-        @confirm="handleLogout"
-        @cancel="showLogoutModal = false"
-    />
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import { logout, useAuthStore } from '@/stores/auth';
-import ConfirmModal from '@/components/ConfirmModal.vue';
+import Swal from 'sweetalert2';
 import Loader from '@/components/Loader.vue';
 
 const emit = defineEmits(['toggle-sidebar']);
@@ -91,28 +83,51 @@ const isSuperAdmin = computed(() => {
     return authStore.user?.role_id === 1;
 });
 
-const showLogoutModal = ref(false);
 const isLoggingOut = ref(false);
 
 const showLogoutConfirm = () => {
-    showLogoutModal.value = true;
-};
-
-const handleLogout = async () => {
-    isLoggingOut.value = true;
-    showLogoutModal.value = false;
-    try {
-        await logout();
-    } catch (error) {
-        console.error('Logout error:', error);
-    } finally {
-        // Reset router's auth bootstrapped state
-        if (window.__authBootstrapped !== undefined) {
-            window.__authBootstrapped = false;
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to logout?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, logout!',
+        cancelButtonText: 'Cancel'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            isLoggingOut.value = true;
+            try {
+                await logout();
+                
+                // Show success message and auto-close after 2 seconds
+                Swal.fire({
+                    title: 'Logged out!',
+                    text: 'You have been successfully logged out.',
+                    icon: 'success',
+                    timer: 2000,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    // Reset router's auth bootstrapped state
+                    if (window.__authBootstrapped !== undefined) {
+                        window.__authBootstrapped = false;
+                    }
+                    isLoggingOut.value = false;
+                    router.push({ name: 'login' });
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+                isLoggingOut.value = false;
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to logout. Please try again.',
+                    icon: 'error'
+                });
+            }
         }
-        isLoggingOut.value = false;
-        router.push({ name: 'login' });
-    }
+    });
 };
 </script>
 

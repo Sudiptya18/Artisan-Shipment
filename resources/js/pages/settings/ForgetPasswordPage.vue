@@ -22,7 +22,7 @@
                             >
                                 <option value="">Select Role</option>
                                 <option v-for="role in roles" :key="role.id" :value="role.id">
-                                    {{ role.name }}
+                                    {{ role.role_name }}
                                 </option>
                             </select>
                             <label for="selectRole">Select Role *</label>
@@ -93,19 +93,12 @@
         </div>
     </div>
 
-    <!-- Success Modal -->
-    <SuccessModal
-        v-model:show="showSuccessModal"
-        title="Success!"
-        message="Password reset successfully."
-        @close="handleSuccessClose"
-    />
 </template>
 
 <script setup>
 import axios from 'axios';
 import { reactive, ref, computed, onMounted } from 'vue';
-import SuccessModal from '@/components/SuccessModal.vue';
+import Swal from 'sweetalert2';
 import Loader from '@/components/Loader.vue';
 
 const logoUrl = '/assets/img/logo.png';
@@ -121,7 +114,6 @@ const roles = ref([]);
 const users = ref([]);
 const errors = reactive({});
 const isSubmitting = ref(false);
-const showSuccessModal = ref(false);
 const alert = reactive({
     type: 'success',
     message: '',
@@ -167,7 +159,12 @@ const submit = async () => {
 
     try {
         await axios.post('/api/auth/reset-password', form);
-        showSuccessModal.value = true;
+        
+        Swal.fire({
+            title: 'Success!',
+            text: 'Password reset successfully.',
+            icon: 'success'
+        });
         
         // Reset form
         form.role_id = '';
@@ -192,10 +189,6 @@ const submit = async () => {
     }
 };
 
-const handleSuccessClose = () => {
-    showSuccessModal.value = false;
-};
-
 onMounted(() => {
     fetchRoles();
     fetchUsers();
@@ -205,5 +198,10 @@ onMounted(() => {
 <style scoped>
 .min-vh-100 {
     min-height: 100vh;
+}
+
+.form-select option {
+    background-color: #ffffff;
+    color: #000000;
 }
 </style>

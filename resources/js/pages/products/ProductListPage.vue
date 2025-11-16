@@ -2,7 +2,7 @@
     <div class="container-fluid px-4">
         <!-- Header Section -->
         <div class="d-flex align-items-center justify-content-between my-4">
-            <h1 class="mb-0">Product List</h1>
+            <h1 class="mb-0">Products List</h1>
             <div class="d-flex align-items-center gap-3">
                 <span class="text-muted showing-text">
                     Showing {{ showingCount }}  out of {{ pagination.total }}
@@ -222,22 +222,6 @@
         </div>
     </div>
 
-    <!-- Confirm Delete Modal -->
-    <ConfirmModal
-        v-model:show="showConfirmModal"
-        title="Confirm Delete"
-        :message="confirmMessage"
-        @confirm="confirmDelete"
-        @cancel="cancelDelete"
-    />
-
-    <!-- Success Modal -->
-    <SuccessModal
-        v-model:show="showSuccessModal"
-        title="Success!"
-        message="Product deleted successfully."
-        @close="handleSuccessClose"
-    />
 </template>
 
 <script setup>
@@ -245,8 +229,7 @@ import axios from 'axios';
 import { reactive, ref, onMounted, computed } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import VueAwesomePaginate from 'vue-awesome-paginate';
-import ConfirmModal from '@/components/ConfirmModal.vue';
-import SuccessModal from '@/components/SuccessModal.vue';
+import Swal from 'sweetalert2';
 import Loader from '@/components/Loader.vue';
 import 'vue-awesome-paginate/dist/style.css';
 
@@ -412,42 +395,45 @@ const editProduct = (product) => {
     router.push({ name: 'products-edit', params: { id: product.id } });
 };
 
-const showConfirmModal = ref(false);
-const showSuccessModal = ref(false);
 const productToDelete = ref(null);
 const hasEditPermission = ref(false);
-const confirmMessage = ref('');
 
 const deleteProduct = (product) => {
     productToDelete.value = product;
-    confirmMessage.value = `Are you sure you want to delete "${product.product_title || product.global_code || 'this product'}"?`;
-    showConfirmModal.value = true;
-};
-
-const confirmDelete = async () => {
-    if (!productToDelete.value) return;
-
-    try {
-        await axios.delete(`/api/products/${productToDelete.value.id}`);
-        showSuccessModal.value = true;
-        fetchProducts(pagination.current_page);
-    } catch (error) {
-        console.error('Failed to delete product:', error);
-        alert.type = 'danger';
-        alert.message = error.response?.data?.message || 'Failed to delete product.';
-    } finally {
-        productToDelete.value = null;
-        confirmMessage.value = '';
-    }
-};
-
-const cancelDelete = () => {
-    productToDelete.value = null;
-    confirmMessage.value = '';
-};
-
-const handleSuccessClose = () => {
-    showSuccessModal.value = false;
+    const productName = product.product_title || product.global_code || 'this product';
+    
+    Swal.fire({
+        title: 'Are you sure?',
+        text: `You want to delete "${productName}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                await axios.delete(`/api/products/${productToDelete.value.id}`);
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: 'Product has been deleted successfully.',
+                    icon: 'success'
+                });
+                fetchProducts(pagination.current_page);
+            } catch (error) {
+                console.error('Failed to delete product:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.response?.data?.message || 'Failed to delete product.',
+                    icon: 'error'
+                });
+            } finally {
+                productToDelete.value = null;
+            }
+        } else {
+            productToDelete.value = null;
+        }
+    });
 };
 
 const alert = reactive({
