@@ -15,7 +15,11 @@ class NavigationSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
+            // Delete all navigations
             Navigation::query()->delete();
+            
+            // Reset AUTO_INCREMENT to start from 1
+            DB::statement('ALTER TABLE navigations AUTO_INCREMENT = 1');
 
             $items = [
                 [
@@ -108,6 +112,31 @@ class NavigationSeeder extends Seeder
                             'key' => 'origins',
                             'title' => 'Add Country of Origin',
                             'route' => 'origins',
+                        ],
+                        [
+                            'key' => 'products-multiple-create',
+                            'title' => 'Create Multiple Products',
+                            'route' => 'products-multiple-create',
+                        ],
+                        [
+                            'key' => 'hscodes',
+                            'title' => 'HS Code',
+                            'route' => 'hscodes',
+                        ],
+                        [
+                            'key' => 'ports',
+                            'title' => 'Port',
+                            'route' => 'ports',
+                        ],
+                        [
+                            'key' => 'titles',
+                            'title' => 'Shipment Title',
+                            'route' => 'titles',
+                        ],
+                        [
+                            'key' => 'groups',
+                            'title' => 'Shipment Group',
+                            'route' => 'groups',
                         ],
                     ],
                 ],

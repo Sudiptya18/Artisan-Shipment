@@ -38,26 +38,28 @@ class MasterUserSeeder extends Seeder
                 ]
             );
 
-            // Get all navigations and assign all permissions to master user
+            // Get all navigations and assign all permissions to all Super Admin users
             $allNavigations = Navigation::all();
             
-            // Delete existing permissions for master user
-            RolesPolicy::where('user_id', $masterUser->id)->delete();
+            // Get all users with Super Admin role
+            $superAdminUsers = User::where('role_id', $superAdminRole->id)->get();
             
-            // Assign all navigation permissions to master user
-            foreach ($allNavigations as $navigation) {
-                RolesPolicy::updateOrCreate(
-                    [
-                        'user_id' => $masterUser->id,
+            // Delete all existing roles_policies first
+            RolesPolicy::query()->delete();
+            
+            // Reset AUTO_INCREMENT to start from 1
+            DB::statement('ALTER TABLE roles_policies AUTO_INCREMENT = 1');
+            
+            // Assign all navigation permissions to all Super Admin users
+            foreach ($superAdminUsers as $user) {
+                // Assign all navigation permissions
+                foreach ($allNavigations as $navigation) {
+                    RolesPolicy::create([
+                        'user_id' => $user->id,
                         'role_id' => $superAdminRole->id,
                         'navigation_id' => $navigation->id,
-                    ],
-                    [
-                        'user_id' => $masterUser->id,
-                        'role_id' => $superAdminRole->id,
-                        'navigation_id' => $navigation->id,
-                    ]
-                );
+                    ]);
+                }
             }
         });
     }

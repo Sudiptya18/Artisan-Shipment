@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NavigationResource;
 use App\Models\Navigation;
+use App\Models\Role;
 use App\Models\RolesPolicy;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class NavigationController extends Controller
@@ -19,7 +21,11 @@ class NavigationController extends Controller
             return NavigationResource::collection(collect());
         }
 
-        // Get user's allowed navigation IDs
+        // Auto-grant permissions to Super Admin users for any missing navigations FIRST
+        // This must happen before getting allowed navigation IDs
+        $this->syncSuperAdminPermissions($user);
+
+        // Get user's allowed navigation IDs (after syncing)
         $allowedNavigationIds = $this->getUserAllowedNavigations($user->id);
 
         // If user has no permissions, don't show dashboard - they should see contactadministrator page
@@ -88,5 +94,63 @@ class NavigationController extends Controller
             ->exists();
 
         return response()->json(['allowed' => $hasPermission]);
+    }
+
+    /**
+     * Sync permissions for Super Admin users - grant access to all navigations.
+     */
+    private function syncSuperAdminPermissions(User $user): void
+    {
+        $superAdminRole = Role::where('role_name', 'Super Admin')->first();
+        
+        if (!$superAdminRole || $user->role_id !== $superAdminRole->id) {
+            return;
+        }
+
+        // Get ALL navigations (including disabled/hidden ones, as they might be enabled later)
+        $allNavigations = Navigation::all();
+        
+        if ($allNavigations->isEmpty()) {
+            return;
+        }
+
+        // Get user's current permissions
+        $userPermissionIds = RolesPolicy::where('user_id', $user->id)
+            ->pluck('navigation_id')
+            ->toArray();
+
+        // Get navigation IDs that need permissions
+        $missingNavigationIds = $allNavigations->pluck('id')
+            ->diff($userPermissionIds)
+            ->toArray();
+
+        // Grant permissions for any missing navigations in batch
+        if (!empty($missingNavigationIds)) {
+            $permissions = [];
+            foreach ($missingNavigationIds as $navigationId) {
+                $permissions[] = [
+                    'user_id' => $user->id,
+                    'role_id' => $superAdminRole->id,
+                    'navigation_id' => $navigationId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            
+            // Insert in batch for better performance
+            try {
+                RolesPolicy::insert($permissions);
+            } catch (\Exception $e) {
+                // If batch insert fails (e.g., duplicate key), insert one by one
+                foreach ($permissions as $permission) {
+                    try {
+                        RolesPolicy::create($permission);
+                    } catch (\Exception $ex) {
+                        // Skip if already exists
+                        continue;
+                    }
+                }
+            }
+        }
     }
 }

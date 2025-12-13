@@ -5,10 +5,16 @@ use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FormatController;
+use App\Http\Controllers\API\GroupController;
+use App\Http\Controllers\API\HscodeController;
 use App\Http\Controllers\API\NavigationController;
 use App\Http\Controllers\API\OriginController;
+use App\Http\Controllers\API\PortController;
+use App\Http\Controllers\API\CommodityController;
 use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\ProductDetailController;
 use App\Http\Controllers\API\ProductLookupController;
+use App\Http\Controllers\API\TitleController;
 use App\Http\Controllers\API\UserPermissionController;
 use Illuminate\Support\Facades\Route;
 
@@ -48,7 +54,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('brands', BrandController::class);
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('formats', FormatController::class);
+    Route::apiResource('hscodes', HscodeController::class);
     Route::apiResource('origins', OriginController::class);
+    Route::apiResource('ports', PortController::class);
+    Route::apiResource('titles', TitleController::class);
+    Route::apiResource('groups', GroupController::class);
+    Route::apiResource('commodities', CommodityController::class);
+    
+    // Product Details
+    Route::prefix('product-details')->group(function () {
+        Route::get('/', [ProductDetailController::class, 'index']);
+        Route::get('/products', [ProductDetailController::class, 'getProducts']);
+        Route::get('/lookups', [ProductDetailController::class, 'getLookups']);
+        Route::post('/bulk', [ProductDetailController::class, 'bulkStore']);
+    });
 
             // User Permissions
             Route::prefix('user-permissions')->group(function () {

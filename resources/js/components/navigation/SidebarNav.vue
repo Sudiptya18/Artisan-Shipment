@@ -89,10 +89,18 @@ const headingMap = [
 const routeExists = (routeName) => {
     if (!routeName) return false;
     try {
-        router.resolve({ name: routeName });
-        return true;
-    } catch {
-        return false;
+        // Get all routes from router
+        const routes = router.getRoutes();
+        const route = routes.find(r => r.name === routeName);
+        return !!route;
+    } catch (error) {
+        // Fallback: try to resolve
+        try {
+            const resolved = router.resolve({ name: routeName });
+            return resolved && resolved.name === routeName;
+        } catch {
+            return false;
+        }
     }
 };
 
