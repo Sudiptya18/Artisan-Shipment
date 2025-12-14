@@ -101,29 +101,43 @@ const showLogoutConfirm = () => {
             try {
                 await logout();
                 
-                // Show success message and auto-close after 2 seconds
+                // Reset router's auth bootstrapped state
+                if (window.__authBootstrapped !== undefined) {
+                    window.__authBootstrapped = false;
+                }
+                
+                // Show success message and auto-redirect after 2 seconds
                 Swal.fire({
                     title: 'Logged out!',
                     text: 'You have been successfully logged out.',
                     icon: 'success',
                     timer: 2000,
                     timerProgressBar: true,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
                 }).then(() => {
-                    // Reset router's auth bootstrapped state
-                    if (window.__authBootstrapped !== undefined) {
-                        window.__authBootstrapped = false;
-                    }
                     isLoggingOut.value = false;
                     router.push({ name: 'login' });
                 });
             } catch (error) {
                 console.error('Logout error:', error);
                 isLoggingOut.value = false;
+                
+                // Even if logout failed, try to redirect
+                if (window.__authBootstrapped !== undefined) {
+                    window.__authBootstrapped = false;
+                }
+                
                 Swal.fire({
-                    title: 'Error!',
-                    text: 'Failed to logout. Please try again.',
-                    icon: 'error'
+                    title: 'Logged out!',
+                    text: 'You have been logged out.',
+                    icon: 'info',
+                    timer: 2000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                }).then(() => {
+                    router.push({ name: 'login' });
                 });
             }
         }

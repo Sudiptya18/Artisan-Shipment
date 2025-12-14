@@ -12,27 +12,29 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('users', 'name')) {
-            Schema::table('users', function (Blueprint $table) {
-                $table->string('name')->after('id');
-            });
-        }
+        if (Schema::hasTable('users')) {
+            if (!Schema::hasColumn('users', 'name')) {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->string('name')->after('id');
+                });
+            }
 
-        // Migrate existing data if first_name and last_name exist
-        if (Schema::hasColumn('users', 'first_name') && Schema::hasColumn('users', 'last_name')) {
-            DB::statement('UPDATE users SET name = TRIM(CONCAT(COALESCE(first_name, ""), " ", COALESCE(last_name, ""))) WHERE (name IS NULL OR name = "") AND (first_name IS NOT NULL OR last_name IS NOT NULL)');
-        }
+            // Migrate existing data if first_name and last_name exist
+            if (Schema::hasColumn('users', 'first_name') && Schema::hasColumn('users', 'last_name')) {
+                DB::statement('UPDATE users SET name = TRIM(CONCAT(COALESCE(first_name, ""), " ", COALESCE(last_name, ""))) WHERE (name IS NULL OR name = "") AND (first_name IS NOT NULL OR last_name IS NOT NULL)');
+            }
 
-        if (Schema::hasColumn('users', 'first_name')) {
-            Schema::table('users', function (Blueprint $table) {
-                $table->dropColumn('first_name');
-            });
-        }
+            if (Schema::hasColumn('users', 'first_name')) {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->dropColumn('first_name');
+                });
+            }
 
-        if (Schema::hasColumn('users', 'last_name')) {
-            Schema::table('users', function (Blueprint $table) {
-                $table->dropColumn('last_name');
-            });
+            if (Schema::hasColumn('users', 'last_name')) {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->dropColumn('last_name');
+                });
+            }
         }
     }
 

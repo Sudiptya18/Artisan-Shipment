@@ -11,6 +11,7 @@ use App\Http\Controllers\API\NavigationController;
 use App\Http\Controllers\API\OriginController;
 use App\Http\Controllers\API\PortController;
 use App\Http\Controllers\API\CommodityController;
+use App\Http\Controllers\API\ContainerLoadController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductDetailController;
 use App\Http\Controllers\API\ProductLookupController;
@@ -60,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('titles', TitleController::class);
     Route::apiResource('groups', GroupController::class);
     Route::apiResource('commodities', CommodityController::class);
+    Route::apiResource('container-loads', ContainerLoadController::class);
     
     // Product Details
     Route::prefix('product-details')->group(function () {

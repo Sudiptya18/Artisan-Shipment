@@ -12,19 +12,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->string('role_name', 100)->unique();
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate();
-        });
+        if (!Schema::hasTable('roles')) {
+            Schema::create('roles', function (Blueprint $table) {
+                $table->id();
+                $table->string('role_name', 100)->unique();
+                $table->timestamp('created_at')->useCurrent();
+                $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate();
+            });
 
-        // Seed default roles
-        DB::table('roles')->insert([
-            ['role_name' => 'Super Admin', 'created_at' => now(), 'updated_at' => now()],
-            ['role_name' => 'Admin', 'created_at' => now(), 'updated_at' => now()],
-            ['role_name' => 'Moderator', 'created_at' => now(), 'updated_at' => now()],
-        ]);
+            // Seed default roles
+            DB::table('roles')->insert([
+                ['role_name' => 'Super Admin', 'created_at' => now(), 'updated_at' => now()],
+                ['role_name' => 'Admin', 'created_at' => now(), 'updated_at' => now()],
+                ['role_name' => 'Moderator', 'created_at' => now(), 'updated_at' => now()],
+            ]);
+        } else {
+            Schema::table('roles', function (Blueprint $table) {
+                if (!Schema::hasColumn('roles', 'role_name')) {
+                    $table->string('role_name', 100)->unique()->after('id');
+                }
+            });
+        }
     }
 
     /**

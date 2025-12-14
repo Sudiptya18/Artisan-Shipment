@@ -22,11 +22,10 @@ export async function fetchCurrentUser() {
 }
 
 export async function login(credentials) {
-    // Always fetch fresh CSRF cookie before login - critical after logout
-    await axios.get('/sanctum/csrf-cookie');
-    
-    // Make login request - Sanctum uses cookie-based CSRF
-    const response = await axios.post('/api/auth/login', credentials);
+    // CSRF not required for API routes - using Sanctum token-based auth
+    const response = await axios.post('/api/auth/login', credentials, {
+        withCredentials: true,
+    });
     
     state.user = response.data.data ?? response.data ?? null;
     state.isLoaded = true;
@@ -41,23 +40,33 @@ export async function login(credentials) {
 }
 
 export async function logout() {
-    // Clear state immediately to prevent multiple clicks
+    // Don't clear state immediately - wait for successful logout
     const wasLoggedIn = !!state.user;
-    state.user = null;
-    state.isLoaded = false;
-    localStorage.removeItem('lastActivity');
-    localStorage.removeItem('rememberMe');
     
     if (!wasLoggedIn) {
         return; // Already logged out
     }
 
     try {
-        await axios.get('/sanctum/csrf-cookie');
-        await axios.post('/api/auth/logout');
+        // CSRF not required for API routes - using Sanctum token-based auth
+        // Make logout request
+        await axios.post('/api/auth/logout', {}, {
+            withCredentials: true,
+        });
+        
+        // Only clear state after successful logout
+        state.user = null;
+        state.isLoaded = false;
+        localStorage.removeItem('lastActivity');
+        localStorage.removeItem('rememberMe');
     } catch (error) {
-        // Logout request failed, but state is already cleared
+        // Even if logout request fails, clear state to prevent stuck sessions
         console.error('Logout error:', error);
+        state.user = null;
+        state.isLoaded = false;
+        localStorage.removeItem('lastActivity');
+        localStorage.removeItem('rememberMe');
+        throw error; // Re-throw to allow caller to handle
     }
 }
 

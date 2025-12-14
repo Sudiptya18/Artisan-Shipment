@@ -11,20 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'role_id')) {
-                $table->foreignId('role_id')
-                    ->nullable()
-                    ->after('is_active')
-                    ->constrained('roles')
-                    ->nullOnDelete();
-            }
-            if (!Schema::hasColumn('users', 'designation_id')) {
-                $table->unsignedBigInteger('designation_id')
-                    ->nullable()
-                    ->after('role_id');
-            }
-        });
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (!Schema::hasColumn('users', 'role_id')) {
+                    $table->foreignId('role_id')
+                        ->nullable()
+                        ->after('is_active')
+                        ->constrained('roles')
+                        ->nullOnDelete();
+                }
+                if (!Schema::hasColumn('users', 'designation_id')) {
+                    $table->unsignedBigInteger('designation_id')
+                        ->nullable()
+                        ->after('role_id');
+                }
+            });
+        }
     }
 
     /**

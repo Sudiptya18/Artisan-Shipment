@@ -7,6 +7,11 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductDetail;
+use App\Models\Hscode;
+use App\Models\Title;
+use App\Models\Commodity;
+use App\Models\ContainerLoad;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -118,10 +123,14 @@ class ProductController extends Controller
             $data['active'] = true;
         }
 
-        $product = DB::transaction(function () use ($data, $images) {
+        $productDetails = $data['product_details'] ?? null;
+        unset($data['product_details']);
+
+        $product = DB::transaction(function () use ($data, $images, $productDetails) {
             $product = Product::create($data);
 
             $this->syncImages($product, $images);
+            $this->syncProductDetails($product, $productDetails);
 
             return $product;
         });
@@ -140,7 +149,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         return new ProductResource(
-            $product->load(['brand', 'category', 'format', 'origin', 'images'])
+            $product->load(['brand', 'category', 'format', 'origin', 'images', 'productDetail.hsCode', 'productDetail.shipmentTitle', 'productDetail.commodity', 'productDetail.containerLoad'])
         );
     }
 
@@ -148,6 +157,11 @@ class ProductController extends Controller
     {
         // Additional security: Sanitize input
         $data = $request->validated();
+        
+        // Parse product_details if it's a JSON string
+        if (isset($data['product_details']) && is_string($data['product_details'])) {
+            $data['product_details'] = json_decode($data['product_details'], true) ?? [];
+        }
         
         // Sanitize string fields
         if (isset($data['product_title'])) {
@@ -170,10 +184,13 @@ class ProductController extends Controller
         unset($data['images']);
 
         $oldValues = $product->toArray();
+        $productDetails = $data['product_details'] ?? null;
+        unset($data['product_details']);
 
-        $product = DB::transaction(function () use ($product, $data, $images) {
+        $product = DB::transaction(function () use ($product, $data, $images, $productDetails) {
             $product->update($data);
             $this->syncImages($product, $images);
+            $this->syncProductDetails($product, $productDetails);
             return $product->fresh();
         });
 
@@ -188,7 +205,7 @@ class ProductController extends Controller
             ->log("Product updated: {$product->product_title} ({$product->global_code})");
 
         return new ProductResource(
-            $product->load(['brand', 'category', 'format', 'origin', 'images'])
+            $product->load(['brand', 'category', 'format', 'origin', 'images', 'productDetail.hsCode', 'productDetail.shipmentTitle', 'productDetail.commodity', 'productDetail.containerLoad'])
         );
     }
 
@@ -264,6 +281,80 @@ class ProductController extends Controller
                 'position' => $index,
             ]);
         }
+    }
+
+    protected function syncProductDetails(Product $product, ?array $productDetails): void
+    {
+        if ($productDetails === null) {
+            return;
+        }
+
+        // Resolve foreign keys
+        $hsCodeId = null;
+        if (!empty($productDetails['hs_code'])) {
+            $hsCode = Hscode::where('hscode', $productDetails['hs_code'])->first();
+            if ($hsCode) {
+                $hsCodeId = $hsCode->id;
+            }
+        }
+
+        $shipmentTitleId = null;
+        if (!empty($productDetails['shipment_title'])) {
+            $title = Title::where('name', $productDetails['shipment_title'])->first();
+            if ($title) {
+                $shipmentTitleId = $title->id;
+            }
+        }
+
+        $commodityId = null;
+        if (!empty($productDetails['commodity'])) {
+            $commodity = Commodity::where('name', $productDetails['commodity'])->first();
+            if ($commodity) {
+                $commodityId = $commodity->id;
+            }
+        }
+
+        $containerLoadId = null;
+        if (!empty($productDetails['container_load'])) {
+            $containerLoad = ContainerLoad::where('name', $productDetails['container_load'])->first();
+            if ($containerLoad) {
+                $containerLoadId = $containerLoad->id;
+            }
+        }
+
+        $detailData = [
+            'product_id' => $product->id,
+            'pcs_cases' => $productDetails['pcs_cases'] ?? null,
+            'cases_pal' => $productDetails['cases_pal'] ?? null,
+            'cases_lay' => $productDetails['cases_lay'] ?? null,
+            'container_load_id' => $containerLoadId,
+            'cases_20ft_container' => $productDetails['cases_20ft_container'] ?? null,
+            'cases_40ft_container' => $productDetails['cases_40ft_container'] ?? null,
+            'total_shelf_life' => $productDetails['total_shelf_life'] ?? null,
+            'gross_weight_cs_kg' => isset($productDetails['gross_weight_cs_kg']) ? (float) $productDetails['gross_weight_cs_kg'] : null,
+            'net_weight_cs_kg' => isset($productDetails['net_weight_cs_kg']) ? (float) $productDetails['net_weight_cs_kg'] : null,
+            'cbm' => isset($productDetails['cbm']) ? (float) $productDetails['cbm'] : null,
+            'hs_code_id' => $hsCodeId,
+            'rate' => isset($productDetails['rate']) ? (float) $productDetails['rate'] : null,
+            'shipment_title_id' => $shipmentTitleId,
+            'commodity_id' => $commodityId,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
+        ];
+
+        // Remove null values to avoid overwriting existing data
+        $detailData = array_filter($detailData, function ($value) {
+            return $value !== null && $value !== '';
+        });
+
+        if (empty($detailData)) {
+            return;
+        }
+
+        $product->productDetail()->updateOrCreate(
+            ['product_id' => $product->id],
+            $detailData
+        );
     }
 
     public function bulkStore(Request $request)

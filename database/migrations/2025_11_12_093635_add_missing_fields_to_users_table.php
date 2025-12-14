@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'username')) {
-                $table->string('username')->unique()->after('name');
-            }
-            if (!Schema::hasColumn('users', 'phone')) {
-                $table->string('phone', 32)->nullable()->after('email');
-            }
-            if (!Schema::hasColumn('users', 'is_active')) {
-                $table->boolean('is_active')->default(true)->after('phone');
-            }
-        });
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (!Schema::hasColumn('users', 'username')) {
+                    $table->string('username')->unique()->after('name');
+                }
+                if (!Schema::hasColumn('users', 'phone')) {
+                    $table->string('phone', 32)->nullable()->after('email');
+                }
+                if (!Schema::hasColumn('users', 'is_active')) {
+                    $table->boolean('is_active')->default(true)->after('phone');
+                }
+            });
+        }
     }
 
     /**

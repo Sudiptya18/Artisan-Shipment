@@ -113,20 +113,89 @@ const hotSettings = computed(() => {
         manualColumnResize: true,
         stretchH: 'all',
         customBorders: true,
-        columnSorting: true,
-        sortIndicator: true,
+        columnSorting: {
+            indicator: true,
+        },
+        filters: true,
+        dropdownMenu: true,
         contextMenu: ['undo', 'redo', '---------', 'remove_row'],
         columns: [
-            { type: 'text', data: 'global_code', className: '', validator: 'uniqueRender' },
-            { type: 'text', data: 'product_title', className: '' },
-            { type: 'text', data: 'description', className: '' },
-            { type: 'text', data: 'benefits', className: '' },
-            { type: 'text', data: 'pack_size', className: '' },
-            { type: 'autocomplete', data: 'brand', source: dataFilter.brand, className: '', allowInvalid: true, strict: false },
-            { type: 'autocomplete', data: 'category', source: dataFilter.category, className: '', allowInvalid: true, strict: false },
-            { type: 'autocomplete', data: 'format', source: dataFilter.format, className: '', allowInvalid: true, strict: false },
-            { type: 'autocomplete', data: 'origin', source: dataFilter.origin, className: '', allowInvalid: true, strict: false },
-            { type: 'autocomplete', data: 'status', source: dataFilter.status, className: '', allowInvalid: false, strict: true },
+            { 
+                type: 'text', 
+                data: 'global_code', 
+                className: '', 
+                validator: 'uniqueRender',
+                filter: 'text',
+            },
+            { 
+                type: 'text', 
+                data: 'product_title', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'text', 
+                data: 'description', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'text', 
+                data: 'benefits', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'text', 
+                data: 'pack_size', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'autocomplete', 
+                data: 'brand', 
+                source: dataFilter.brand, 
+                className: '', 
+                allowInvalid: true, 
+                strict: false,
+                filter: 'autocomplete',
+            },
+            { 
+                type: 'autocomplete', 
+                data: 'category', 
+                source: dataFilter.category, 
+                className: '', 
+                allowInvalid: true, 
+                strict: false,
+                filter: 'autocomplete',
+            },
+            { 
+                type: 'autocomplete', 
+                data: 'format', 
+                source: dataFilter.format, 
+                className: '', 
+                allowInvalid: true, 
+                strict: false,
+                filter: 'autocomplete',
+            },
+            { 
+                type: 'autocomplete', 
+                data: 'origin', 
+                source: dataFilter.origin, 
+                className: '', 
+                allowInvalid: true, 
+                strict: false,
+                filter: 'autocomplete',
+            },
+            { 
+                type: 'autocomplete', 
+                data: 'status', 
+                source: dataFilter.status, 
+                className: '', 
+                allowInvalid: false, 
+                strict: true,
+                filter: 'autocomplete',
+            },
         ],
         cells: function (row, col, prop) {
             const cellProperties = {};
@@ -407,8 +476,10 @@ const saveProducts = async () => {
             return;
         }
 
-        // Send to backend
-        const response = await axios.post('/api/products/bulk', { products });
+        // Send to backend (CSRF cookie will be fetched automatically by axios interceptor)
+        const response = await axios.post('/api/products/bulk', { products }, {
+            withCredentials: true,
+        });
 
         if (response.data.success) {
             isSaving.value = false; // Hide preloader
@@ -421,8 +492,9 @@ const saveProducts = async () => {
                 confirmButtonText: 'OK',
                 timer: 5000,
                 timerProgressBar: true
-            }).then(() => {
-                window.location.reload();
+            }).then(async () => {
+                // Reload data without full page reload
+                await fetchProducts();
             });
         }
     } catch (error) {
@@ -437,8 +509,9 @@ const saveProducts = async () => {
             confirmButtonText: 'OK',
             timer: 5000,
             timerProgressBar: true
-        }).then(() => {
-            window.location.reload();
+        }).then(async () => {
+            // Reload data without full page reload
+            await fetchProducts();
         });
     }
 };

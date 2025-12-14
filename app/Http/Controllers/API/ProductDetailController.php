@@ -8,6 +8,7 @@ use App\Models\ProductDetail;
 use App\Models\Hscode;
 use App\Models\Title;
 use App\Models\Commodity;
+use App\Models\ContainerLoad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -16,7 +17,7 @@ class ProductDetailController extends Controller
 {
     public function index()
     {
-        $productDetails = ProductDetail::with(['product', 'hsCode', 'shipmentTitle', 'commodity'])
+        $productDetails = ProductDetail::with(['product', 'hsCode', 'shipmentTitle', 'commodity', 'containerLoad'])
             ->orderBy('id')
             ->get();
         return response()->json(['data' => $productDetails]);
@@ -36,11 +37,13 @@ class ProductDetailController extends Controller
         $hscodes = Hscode::select('id', 'hscode')->orderBy('hscode')->get();
         $titles = Title::select('id', 'name')->orderBy('name')->get();
         $commodities = Commodity::select('id', 'name')->orderBy('name')->get();
+        $containerLoads = ContainerLoad::select('id', 'name')->orderBy('name')->get();
 
         return response()->json([
             'hscodes' => $hscodes,
             'titles' => $titles,
             'commodities' => $commodities,
+            'container_loads' => $containerLoads,
         ]);
     }
 
@@ -76,37 +79,44 @@ class ProductDetailController extends Controller
                 $rowNumber = $index + 1;
                 $rowErrors = [];
 
-                // Validate and resolve HS Code
+                // Validate and resolve HS Code (set to null if not found, don't error)
                 $hsCodeId = null;
                 if (!empty($detail['hs_code'])) {
                     $hsCode = Hscode::where('hscode', $detail['hs_code'])->first();
-                    if (!$hsCode) {
-                        $rowErrors[] = "HS Code '{$detail['hs_code']}' not found";
-                    } else {
+                    if ($hsCode) {
                         $hsCodeId = $hsCode->id;
                     }
+                    // If not found, $hsCodeId remains null (no error)
                 }
 
-                // Validate and resolve Shipment Title
+                // Validate and resolve Shipment Title (set to null if not found, don't error)
                 $shipmentTitleId = null;
                 if (!empty($detail['shipment_title'])) {
                     $title = Title::where('name', $detail['shipment_title'])->first();
-                    if (!$title) {
-                        $rowErrors[] = "Shipment Title '{$detail['shipment_title']}' not found";
-                    } else {
+                    if ($title) {
                         $shipmentTitleId = $title->id;
                     }
+                    // If not found, $shipmentTitleId remains null (no error)
                 }
 
-                // Validate and resolve Commodity
+                // Validate and resolve Commodity (set to null if not found, don't error)
                 $commodityId = null;
                 if (!empty($detail['commodity'])) {
                     $commodity = Commodity::where('name', $detail['commodity'])->first();
-                    if (!$commodity) {
-                        $rowErrors[] = "Commodity '{$detail['commodity']}' not found";
-                    } else {
+                    if ($commodity) {
                         $commodityId = $commodity->id;
                     }
+                    // If not found, $commodityId remains null (no error)
+                }
+
+                // Validate and resolve Container Load (set to null if not found, don't error)
+                $containerLoadId = null;
+                if (!empty($detail['container_load'])) {
+                    $containerLoad = ContainerLoad::where('name', $detail['container_load'])->first();
+                    if ($containerLoad) {
+                        $containerLoadId = $containerLoad->id;
+                    }
+                    // If not found, $containerLoadId remains null (no error)
                 }
 
                 if (!empty($rowErrors)) {
@@ -122,7 +132,7 @@ class ProductDetailController extends Controller
                     'pcs_cases' => $detail['pcs_cases'] ?? null,
                     'cases_pal' => $detail['cases_pal'] ?? null,
                     'cases_lay' => $detail['cases_lay'] ?? null,
-                    'container_load' => $detail['container_load'] ?? null,
+                    'container_load_id' => $containerLoadId,
                     'cases_20ft_container' => $detail['cases_20ft_container'] ?? null,
                     'cases_40ft_container' => $detail['cases_40ft_container'] ?? null,
                     'total_shelf_life' => $detail['total_shelf_life'] ?? null,

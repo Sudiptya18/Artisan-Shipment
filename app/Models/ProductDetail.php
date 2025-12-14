@@ -15,7 +15,7 @@ class ProductDetail extends Model
         'pcs_cases',
         'cases_pal',
         'cases_lay',
-        'container_load',
+        'container_load_id',
         'cases_20ft_container',
         'cases_40ft_container',
         'total_shelf_life',
@@ -55,5 +55,10 @@ class ProductDetail extends Model
     public function commodity(): BelongsTo
     {
         return $this->belongsTo(Commodity::class);
+    }
+
+    public function containerLoad(): BelongsTo
+    {
+        return $this->belongsTo(ContainerLoad::class, 'container_load_id');
     }
 }

@@ -205,6 +205,156 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Product Details Section -->
+                    <div class="row g-3 mt-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">Product Details</h5>
+                            <hr>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Pcs/Cases</label>
+                            <input
+                                v-model="form.product_details.pcs_cases"
+                                type="text"
+                                class="form-control"
+                                placeholder="Pcs/Cases"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Cases/Pal</label>
+                            <input
+                                v-model="form.product_details.cases_pal"
+                                type="text"
+                                class="form-control"
+                                placeholder="Cases/Pal"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Cases/Lay</label>
+                            <input
+                                v-model="form.product_details.cases_lay"
+                                type="text"
+                                class="form-control"
+                                placeholder="Cases/Lay"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Container Load</label>
+                            <select
+                                v-model="form.product_details.container_load"
+                                class="form-select"
+                            >
+                                <option value="">Select Container Load</option>
+                                <option v-for="cl in lookups.container_loads" :key="cl.id" :value="cl.name">
+                                    {{ cl.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Cases / 20 ft Container</label>
+                            <input
+                                v-model="form.product_details.cases_20ft_container"
+                                type="text"
+                                class="form-control"
+                                placeholder="Cases / 20 ft Container"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Cases / 40 ft Container</label>
+                            <input
+                                v-model="form.product_details.cases_40ft_container"
+                                type="text"
+                                class="form-control"
+                                placeholder="Cases / 40 ft Container"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Shelf Life</label>
+                            <input
+                                v-model="form.product_details.total_shelf_life"
+                                type="text"
+                                class="form-control"
+                                placeholder="Total Shelf Life"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Gross Weight (CS) - KG</label>
+                            <input
+                                v-model="form.product_details.gross_weight_cs_kg"
+                                type="number"
+                                step="0.01"
+                                class="form-control"
+                                placeholder="Gross Weight"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Net Weight (CS) - KG</label>
+                            <input
+                                v-model="form.product_details.net_weight_cs_kg"
+                                type="number"
+                                step="0.01"
+                                class="form-control"
+                                placeholder="Net Weight"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">CBM</label>
+                            <input
+                                v-model="form.product_details.cbm"
+                                type="number"
+                                step="0.01"
+                                class="form-control"
+                                placeholder="CBM"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">HS CODE</label>
+                            <select
+                                v-model="form.product_details.hs_code"
+                                class="form-select"
+                            >
+                                <option value="">Select HS Code</option>
+                                <option v-for="hscode in lookups.hscodes" :key="hscode.id" :value="hscode.hscode">
+                                    {{ hscode.hscode }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Rate</label>
+                            <input
+                                v-model="form.product_details.rate"
+                                type="number"
+                                step="0.01"
+                                class="form-control"
+                                placeholder="Rate"
+                            />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Shipment Title</label>
+                            <select
+                                v-model="form.product_details.shipment_title"
+                                class="form-select"
+                            >
+                                <option value="">Select Shipment Title</option>
+                                <option v-for="title in lookups.titles" :key="title.id" :value="title.name">
+                                    {{ title.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Commodity</label>
+                            <select
+                                v-model="form.product_details.commodity"
+                                class="form-select"
+                            >
+                                <option value="">Select Commodity</option>
+                                <option v-for="commodity in lookups.commodities" :key="commodity.id" :value="commodity.name">
+                                    {{ commodity.name }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="d-flex justify-content-end mt-4">
                         <RouterLink :to="{ name: 'products-list' }" class="btn btn-secondary me-2">
                             Cancel
@@ -232,6 +382,10 @@ const lookups = reactive({
     categories: [],
     formats: [],
     origins: [],
+    hscodes: [],
+    titles: [],
+    commodities: [],
+    container_loads: [],
 });
 
 const form = reactive({
@@ -246,6 +400,22 @@ const form = reactive({
     origin_id: '',
     status: 'ACTIVE',
     images: [],
+    product_details: {
+        pcs_cases: '',
+        cases_pal: '',
+        cases_lay: '',
+        container_load: '',
+        cases_20ft_container: '',
+        cases_40ft_container: '',
+        total_shelf_life: '',
+        gross_weight_cs_kg: '',
+        net_weight_cs_kg: '',
+        cbm: '',
+        hs_code: '',
+        rate: '',
+        shipment_title: '',
+        commodity: '',
+    },
 });
 
 const imagePreviews = ref([]);
@@ -266,6 +436,10 @@ const loadLookups = async () => {
         lookups.categories = Array.isArray(data.categories) ? data.categories : [];
         lookups.formats = Array.isArray(data.formats) ? data.formats : [];
         lookups.origins = Array.isArray(data.origins) ? data.origins : [];
+        lookups.hscodes = Array.isArray(data.hscodes) ? data.hscodes : [];
+        lookups.titles = Array.isArray(data.titles) ? data.titles : [];
+        lookups.commodities = Array.isArray(data.commodities) ? data.commodities : [];
+        lookups.container_loads = Array.isArray(data.container_loads) ? data.container_loads : [];
         
         console.log('Loaded lookups:', {
             brands: lookups.brands.length,
@@ -317,6 +491,22 @@ const resetForm = () => {
     form.origin_id = '';
     form.status = 'ACTIVE';
     form.images = [];
+    form.product_details = {
+        pcs_cases: '',
+        cases_pal: '',
+        cases_lay: '',
+        container_load: '',
+        cases_20ft_container: '',
+        cases_40ft_container: '',
+        total_shelf_life: '',
+        gross_weight_cs_kg: '',
+        net_weight_cs_kg: '',
+        cbm: '',
+        hs_code: '',
+        rate: '',
+        shipment_title: '',
+        commodity: '',
+    };
     imagePreviews.value = [];
 };
 
@@ -331,6 +521,17 @@ const submit = async () => {
             value.forEach((file, index) => {
                 payload.append(`images[${index}]`, file);
             });
+        } else if (key === 'product_details') {
+            // Append product_details as JSON
+            const productDetails = {};
+            Object.entries(value).forEach(([detailKey, detailValue]) => {
+                if (detailValue !== null && detailValue !== undefined && detailValue !== '') {
+                    productDetails[detailKey] = detailValue;
+                }
+            });
+            if (Object.keys(productDetails).length > 0) {
+                payload.append('product_details', JSON.stringify(productDetails));
+            }
         } else if (value !== null && value !== undefined && value !== '') {
             payload.append(key, value);
         }

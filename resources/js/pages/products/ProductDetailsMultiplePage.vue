@@ -70,12 +70,24 @@ const products = ref([]);
 const hscodes = ref([]);
 const titles = ref([]);
 const commodities = ref([]);
+const containerLoads = ref([]);
 const productDetailsMap = ref(new Map()); // Map product_id to product_detail
 
 const dataFilter = reactive({
     global_code: [],
     product_name: [],
+    pcs_cases: [],
+    cases_pal: [],
+    cases_lay: [],
+    container_load: [],
+    cases_20ft_container: [],
+    cases_40ft_container: [],
+    total_shelf_life: [],
+    gross_weight_cs_kg: [],
+    net_weight_cs_kg: [],
+    cbm: [],
     hs_code: [],
+    rate: [],
     shipment_title: [],
     commodity: [],
 });
@@ -108,10 +120,18 @@ const hotSettings = computed(() => {
         manualColumnResize: true,
         stretchH: 'all',
         customBorders: true,
-        columnSorting: true,
-        sortIndicator: true,
+        columnSorting: {
+            indicator: true,
+        },
+        filters: true,
+        dropdownMenu: true,
+        fixedColumnsStart: 2, // Freeze first two columns
         contextMenu: ['undo', 'redo', '---------', 'remove_row'],
-        copyPaste: true,
+        copyPaste: {
+            pasteMode: 'shift_down',
+            rowsLimit: 1000,
+            columnsLimit: 1000,
+        },
         allowInsertRow: true,
         allowRemoveRow: true,
         columns: [
@@ -122,51 +142,119 @@ const hotSettings = computed(() => {
                 className: '',
                 allowInvalid: false,
                 strict: true,
+                filter: 'autocomplete',
             },
             { 
                 type: 'text', 
                 data: 'product_name', 
                 readOnly: true, 
-                className: 'htReadOnly' 
+                className: 'htReadOnly',
+                filter: 'text',
             },
-            { type: 'text', data: 'pcs_cases', className: '' },
-            { type: 'text', data: 'cases_pal', className: '' },
-            { type: 'text', data: 'cases_lay', className: '' },
-            { type: 'text', data: 'container_load', className: '' },
-            { type: 'text', data: 'cases_20ft_container', className: '' },
-            { type: 'text', data: 'cases_40ft_container', className: '' },
-            { type: 'text', data: 'total_shelf_life', className: '' },
-            { type: 'numeric', data: 'gross_weight_cs_kg', numericFormat: { pattern: '0.00' }, className: '' },
-            { type: 'numeric', data: 'net_weight_cs_kg', numericFormat: { pattern: '0.00' }, className: '' },
-            { type: 'numeric', data: 'cbm', numericFormat: { pattern: '0.00' }, className: '' },
+            { 
+                type: 'text', 
+                data: 'pcs_cases', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'text', 
+                data: 'cases_pal', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'text', 
+                data: 'cases_lay', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'autocomplete', 
+                data: 'container_load', 
+                source: dataFilter.container_load, 
+                className: '',
+                allowInvalid: true, // Allow invalid values (will be set to null if not found)
+                strict: false,
+                filter: 'autocomplete',
+            },
+            { 
+                type: 'text', 
+                data: 'cases_20ft_container', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'text', 
+                data: 'cases_40ft_container', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'text', 
+                data: 'total_shelf_life', 
+                className: '',
+                filter: 'text',
+            },
+            { 
+                type: 'numeric', 
+                data: 'gross_weight_cs_kg', 
+                numericFormat: { pattern: '0.00' }, 
+                className: '',
+                filter: 'numeric',
+            },
+            { 
+                type: 'numeric', 
+                data: 'net_weight_cs_kg', 
+                numericFormat: { pattern: '0.00' }, 
+                className: '',
+                filter: 'numeric',
+            },
+            { 
+                type: 'numeric', 
+                data: 'cbm', 
+                numericFormat: { pattern: '0.00' }, 
+                className: '',
+                filter: 'numeric',
+            },
             { 
                 type: 'autocomplete', 
                 data: 'hs_code', 
                 source: dataFilter.hs_code, 
-                className: '', 
-                allowInvalid: false, 
-                strict: true 
+                className: '',
+                allowInvalid: true, // Allow invalid values (will be set to null if not found)
+                strict: false,
+                filter: 'autocomplete',
             },
-            { type: 'numeric', data: 'rate', numericFormat: { pattern: '0.00' }, className: '' },
+            { 
+                type: 'numeric', 
+                data: 'rate', 
+                numericFormat: { pattern: '0.00' }, 
+                className: '',
+                filter: 'numeric',
+            },
             { 
                 type: 'autocomplete', 
                 data: 'shipment_title', 
                 source: dataFilter.shipment_title, 
-                className: '', 
-                allowInvalid: false, 
-                strict: true 
+                className: '',
+                allowInvalid: true, // Allow invalid values (will be set to null if not found)
+                strict: false,
+                filter: 'autocomplete',
             },
             { 
                 type: 'autocomplete', 
                 data: 'commodity', 
                 source: dataFilter.commodity, 
-                className: '', 
-                allowInvalid: false, 
-                strict: true 
+                className: '',
+                allowInvalid: true, // Allow invalid values (will be set to null if not found)
+                strict: false,
+                filter: 'autocomplete',
             },
         ],
         afterChange: (changes, source) => {
-            if (source === 'loadData' || !changes) {
+            // Ignore changes from loadData, autofill, or other internal sources
+            if (source === 'loadData' || source === 'autofill' || source === 'CopyPaste.paste' || !changes) {
                 return;
             }
 
@@ -186,17 +274,35 @@ const hotSettings = computed(() => {
                 }
             }
         },
+        afterPaste: (data, coords) => {
+            // Handle paste for foreign key columns - allow any value, backend will handle matching
+            const hotInstance = hotTableComponent.value?.hotInstance;
+            if (!hotInstance) return;
+
+            const foreignKeyColumns = ['hs_code', 'shipment_title', 'commodity', 'container_load'];
+            
+            // Process each pasted cell
+            for (let row = 0; row < data.length; row++) {
+                for (let col = 0; col < data[row].length; col++) {
+                    const targetRow = coords[0].row + row;
+                    const targetCol = coords[0].col + col;
+                    const prop = hotInstance.colToProp(targetCol);
+                    
+                    // For foreign key columns, just allow the value - backend will match and set to null if not found
+                    if (foreignKeyColumns.includes(prop) && data[row][col]) {
+                        const value = data[row][col].toString().trim();
+                        // Keep the value - backend will handle matching
+                        // If not matched, backend sets to null, and on reload it will show empty
+                    }
+                }
+            }
+        },
         beforeKeyDown: (event) => {
             // Ctrl+E to export as Excel/CSV
             if (event.ctrlKey && (event.key === 'e' || event.key === 'E')) {
                 event.preventDefault();
                 exportToExcel();
             }
-        },
-        copyPaste: {
-            pasteMode: 'shift_down',
-            rowsLimit: 1000,
-            columnsLimit: 1000,
         },
     };
 });
@@ -212,6 +318,7 @@ const fetchLookups = async () => {
         hscodes.value = lookupsRes.data.hscodes || [];
         titles.value = lookupsRes.data.titles || [];
         commodities.value = lookupsRes.data.commodities || [];
+        containerLoads.value = lookupsRes.data.container_loads || [];
 
         // Populate dataFilter for autocomplete (remove duplicates and sort)
         dataFilter.global_code = [...new Set(products.value.map(p => p.global_code).filter(Boolean))].sort();
@@ -219,12 +326,14 @@ const fetchLookups = async () => {
         dataFilter.hs_code = [...new Set(hscodes.value.map(h => h.hscode).filter(Boolean))].sort();
         dataFilter.shipment_title = [...new Set(titles.value.map(t => t.name).filter(Boolean))].sort();
         dataFilter.commodity = [...new Set(commodities.value.map(c => c.name).filter(Boolean))].sort();
+        dataFilter.container_load = [...new Set(containerLoads.value.map(cl => cl.name).filter(Boolean))].sort();
 
         console.log('Loaded products:', products.value.length);
         console.log('Loaded lookups:', {
             hscodes: hscodes.value.length,
             titles: titles.value.length,
             commodities: commodities.value.length,
+            container_loads: containerLoads.value.length,
         });
     } catch (error) {
         console.error('Failed to fetch lookups:', error);
@@ -234,8 +343,17 @@ const fetchLookups = async () => {
 };
 
 const fetchProductDetails = async () => {
-    isLoading.value = true;
+    // Only set loading if not already saving (to avoid double loading indicator)
+    if (!isSaving.value) {
+        isLoading.value = true;
+    }
+    
     try {
+        // Ensure products are loaded first
+        if (!products.value || products.value.length === 0) {
+            await fetchLookups();
+        }
+        
         // Fetch product details
         const response = await axios.get('/api/product-details');
         const productDetails = response.data.data || [];
@@ -258,7 +376,7 @@ const fetchProductDetails = async () => {
                 pcs_cases: detail?.pcs_cases || '',
                 cases_pal: detail?.cases_pal || '',
                 cases_lay: detail?.cases_lay || '',
-                container_load: detail?.container_load || '',
+                container_load: detail?.containerLoad?.name || '',
                 cases_20ft_container: detail?.cases_20ft_container || '',
                 cases_40ft_container: detail?.cases_40ft_container || '',
                 total_shelf_life: detail?.total_shelf_life || '',
@@ -282,10 +400,13 @@ const fetchProductDetails = async () => {
         await nextTick();
         
         // Try multiple times to ensure HOT is ready
+        let attempts = 0;
+        const maxAttempts = 5;
         const loadData = () => {
             const hotInstance = hotTableComponent.value?.hotInstance;
             if (hotInstance) {
-                console.log('Loading data into HOT...');
+                console.log('Loading data into HOT...', formattedData.length, 'rows');
+                // Load new data (loadData will replace existing data, no need to clear)
                 hotInstance.loadData(formattedData);
                 return true;
             }
@@ -294,20 +415,24 @@ const fetchProductDetails = async () => {
 
         // Try immediately
         if (!loadData()) {
-            // Try after short delay
-            setTimeout(() => {
-                if (!loadData()) {
-                    // Try one more time
-                    setTimeout(loadData, 500);
+            // Try with delays
+            const tryLoad = () => {
+                attempts++;
+                if (loadData() || attempts >= maxAttempts) {
+                    return;
                 }
-            }, 300);
+                setTimeout(tryLoad, 200);
+            };
+            setTimeout(tryLoad, 100);
         }
     } catch (error) {
         console.error('Failed to fetch product details:', error);
         alert.type = 'danger';
         alert.message = 'Failed to load existing product details.';
     } finally {
+        // Always reset loading state
         isLoading.value = false;
+        // Don't reset saving state here - it should be reset by the save function
     }
 };
 
@@ -420,13 +545,17 @@ const saveProductDetails = async () => {
             return;
         }
 
-        // Send to backend
+        // Send to backend (CSRF cookie will be fetched automatically by axios interceptor)
         const response = await axios.post('/api/product-details/bulk', {
             product_details: productDetails,
+        }, {
+            withCredentials: true,
         });
 
         if (response.data.success) {
+            // Reset saving state immediately after success
             isSaving.value = false;
+            
             const message = `Successfully ${response.data.created > 0 ? `created ${response.data.created} product detail(s)` : ''}${response.data.created > 0 && response.data.updated > 0 ? ' and ' : ''}${response.data.updated > 0 ? `updated ${response.data.updated} product detail(s)` : ''}.`;
 
             Swal.fire({
@@ -434,10 +563,22 @@ const saveProductDetails = async () => {
                 text: message,
                 icon: 'success',
                 confirmButtonText: 'OK',
-                timer: 5000,
+                timer: 2000,
                 timerProgressBar: true,
-            }).then(() => {
-                window.location.reload();
+                showConfirmButton: false,
+            }).then(async () => {
+                // Reload lookups and data without full page reload
+                try {
+                    // Ensure saving state is reset before reloading
+                    isSaving.value = false;
+                    await fetchLookups();
+                    await fetchProductDetails();
+                } catch (error) {
+                    console.error('Failed to reload data:', error);
+                    // Even if reload fails, ensure states are reset
+                    isSaving.value = false;
+                    isLoading.value = false;
+                }
             });
         }
     } catch (error) {
@@ -467,22 +608,16 @@ const saveProductDetails = async () => {
                 confirmButtonText: 'OK',
                 timer: 5000,
                 timerProgressBar: true,
-            }).then(() => {
-                window.location.reload();
+            }).then(async () => {
+                // Reload data without full page reload
+                await fetchProductDetails();
             });
         }
     }
 };
 
-// Watch for HOT instance to be ready
-watch(() => hotTableComponent.value?.hotInstance, (hotInstance) => {
-    if (hotInstance && tableData.value.length > 0 && !isLoading.value) {
-        // HOT is ready and we have data, load it
-        setTimeout(() => {
-            hotInstance.loadData(tableData.value);
-        }, 100);
-    }
-});
+// Removed watch to prevent automatic data loading that was causing data removal
+// Data is loaded explicitly by fetchProductDetails() after it completes
 
 onMounted(async () => {
     await fetchLookups();

@@ -7,6 +7,10 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Format;
 use App\Models\Origin;
+use App\Models\Hscode;
+use App\Models\Title;
+use App\Models\Commodity;
+use App\Models\ContainerLoad;
 use Illuminate\Http\Request;
 
 class ProductLookupController extends Controller
@@ -53,6 +57,42 @@ class ProductLookupController extends Controller
                         'id' => $origin->id,
                         'name' => $origin->origin_name,
                         'iso_code' => $origin->iso_code,
+                    ];
+                }),
+            'hscodes' => Hscode::query()
+                ->orderBy('hscode')
+                ->get()
+                ->map(function ($hscode) {
+                    return [
+                        'id' => $hscode->id,
+                        'hscode' => $hscode->hscode,
+                    ];
+                }),
+            'titles' => Title::query()
+                ->orderBy('name')
+                ->get()
+                ->map(function ($title) {
+                    return [
+                        'id' => $title->id,
+                        'name' => $title->name,
+                    ];
+                }),
+            'commodities' => Commodity::query()
+                ->orderBy('name')
+                ->get()
+                ->map(function ($commodity) {
+                    return [
+                        'id' => $commodity->id,
+                        'name' => $commodity->name,
+                    ];
+                }),
+            'container_loads' => ContainerLoad::query()
+                ->orderBy('name')
+                ->get()
+                ->map(function ($containerLoad) {
+                    return [
+                        'id' => $containerLoad->id,
+                        'name' => $containerLoad->name,
                     ];
                 }),
         ]);
