@@ -14,12 +14,11 @@ class NavigationSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::transaction(function () {
-            // Delete all navigations
-            Navigation::query()->delete();
-            
-            // Reset AUTO_INCREMENT to start from 1
-            DB::statement('ALTER TABLE navigations AUTO_INCREMENT = 1');
+        // Delete all navigations
+        Navigation::query()->delete();
+        
+        // Reset AUTO_INCREMENT to start from 1
+        DB::statement('ALTER TABLE navigations AUTO_INCREMENT = 1');
 
             $items = [
                 [
@@ -223,6 +222,5 @@ class NavigationSeeder extends Seeder
                     ]);
                 }
             }
-        });
     }
 }

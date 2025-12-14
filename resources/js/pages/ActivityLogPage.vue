@@ -226,21 +226,21 @@ onMounted(() => {
 
 .back-btn,
 .next-btn {
-    background-color: #0d6efd;
+    background-color: #0e9351;
     color: #fff;
-    border-color: #0d6efd;
+    border-color: #0e9351;
 }
 
 .back-btn:hover,
 .next-btn:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
+    background-color: #18a950;
+    border-color: #18a950;
 }
 
 .btn-active {
-    background-color: #0d6efd;
+    background-color: #0e9351;
     color: #fff;
-    border-color: #0d6efd;
+    border-color: #0e9351;
 }
 </style>
 

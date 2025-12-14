@@ -162,7 +162,13 @@
                             <tr v-else-if="!products.length">
                                 <td :colspan="hasEditPermission ? 9 : 8" class="text-center py-4 text-muted">No products found.</td>
                             </tr>
-                            <tr v-for="(product, index) in products" :key="product.id">
+                            <tr 
+                                v-for="(product, index) in products" 
+                                :key="product.id"
+                                class="product-row"
+                                @click="viewProduct(product)"
+                                style="cursor: pointer;"
+                            >
                                 <td class="text-center">{{ (pagination.current_page - 1) * pagination.per_page + index + 1 }}</td>
                                 <td class="text-center">{{ product.global_code || '—' }}</td>
                                 <td class="text-center">{{ product.product_title || '—' }}</td>
@@ -178,7 +184,7 @@
                                         {{ product.active ? 'Active' : 'Inactive' }}
                                     </span>
                                 </td>
-                                <td v-if="hasEditPermission" class="text-center">
+                                <td v-if="hasEditPermission" class="text-center" @click.stop>
                                     <div class="d-flex gap-2 justify-content-center">
                                         <button
                                             class="btn btn-sm btn-primary"
@@ -391,6 +397,10 @@ const handlePerPageChange = () => {
     fetchProducts(1);
 };
 
+const viewProduct = (product) => {
+    router.push({ name: 'products-detail', params: { id: product.id } });
+};
+
 const editProduct = (product) => {
     router.push({ name: 'products-edit', params: { id: product.id } });
 };
@@ -519,6 +529,11 @@ onMounted(() => {
     vertical-align: middle;
 }
 
+.product-row:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s;
+}
+
 .th-content {
     display: flex;
     flex-direction: column;
@@ -575,20 +590,20 @@ onMounted(() => {
 
 .back-btn,
 .next-btn {
-    background-color: #0d6efd;
+    background-color: #0e9351;
     color: #fff;
-    border-color: #0d6efd;
+    border-color: #0e9351;
 }
 
 .back-btn:hover,
 .next-btn:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
+    background-color: #18a950;
+    border-color: #18a950;
 }
 
 .btn-active {
-    background-color: #0d6efd;
+    background-color: #0e9351;
     color: #fff;
-    border-color: #0d6efd;
+    border-color: #0e9351;
 }
 </style>

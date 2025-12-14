@@ -10,3 +10,32 @@ body {
     font-size: 1rem; // Will be 12px based on html font-size
     height: 100%;
 }
+
+// Override Bootstrap primary color globally
+.btn-primary,
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active,
+.show > .btn-primary.dropdown-toggle {
+    background-color: #0e9351 !important;
+    border-color: #0e9351 !important;
+    color: #fff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: #18a950 !important;
+    border-color: #18a950 !important;
+    color: #fff !important;
+}
+
+.bg-primary {
+    background-color: #0e9351 !important;
+}
+
+.text-primary {
+    color: #0e9351 !important;
+}
+
+.border-primary {
+    border-color: #0e9351 !important;
+}

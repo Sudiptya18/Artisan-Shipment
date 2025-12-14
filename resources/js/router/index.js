@@ -14,6 +14,7 @@ import LayoutSidenavLightPage from '@/pages/LayoutSidenavLightPage.vue';
 import ProductCreatePage from '@/pages/products/ProductCreatePage.vue';
 import ProductEditPage from '@/pages/products/ProductEditPage.vue';
 import ProductListPage from '@/pages/products/ProductListPage.vue';
+import ProductDetailPage from '@/pages/products/ProductDetailPage.vue';
 import ProductMultipleCreatePage from '@/pages/products/ProductMultipleCreatePage.vue';
 import BrandsPage from '@/pages/products/brands/BrandsPage.vue';
 import CategoriesPage from '@/pages/products/categories/CategoriesPage.vue';
@@ -98,6 +99,12 @@ const router = createRouter({
                     name: 'products-edit',
                     component: ProductEditPage,
                     meta: { title: 'Edit Product', requiresAuth: true },
+                },
+                {
+                    path: 'products/detail/:id',
+                    name: 'products-detail',
+                    component: ProductDetailPage,
+                    meta: { title: 'Product Details', requiresAuth: true },
                 },
                 {
                     path: 'products',
