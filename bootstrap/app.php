@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Keep stateful API for Sanctum, but disable CSRF for API routes
+        // statefulApi() automatically applies session middleware to API routes
         $middleware->statefulApi();
         $middleware->validateCsrfTokens(except: [
             'api/*',

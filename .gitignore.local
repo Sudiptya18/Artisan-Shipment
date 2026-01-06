@@ -1,0 +1,55 @@
+# Local Development Only Files
+# These files should NEVER be committed or deployed to live
+
+# Local environment files
+.env.local
+.env.development
+.env.testing
+
+# Local IDE settings
+.vscode/settings.json
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/shelf
+
+# Local development tools
+composer.phar
+phpunit.phar
+
+# Local test files
+tests/_output/*
+tests/_support/_generated/*
+
+# Local cache (keep structure, ignore content)
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*.log
+
+# Local build artifacts
+public/hot
+public/storage
+
+# Local database
+*.sqlite
+*.sqlite-journal
+database/*.sqlite
+
+# Local temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Local backup files
+*.bak
+*.backup
+*_backup
+*_old
+
+# OS specific (already in main .gitignore but ensuring)
+.DS_Store
+Thumbs.db
+desktop.ini
