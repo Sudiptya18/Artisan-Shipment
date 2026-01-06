@@ -4,7 +4,7 @@
 param(
     [string]$serverUser = "ship",
     [string]$serverHost = "ship.artisanbn.com",
-    [string]$serverPath = "/home/ship/public_html/ship.artisanbn.com",
+    [string]$serverPath = "/home/artisanbn/public_html/ship.artisanbn.com",
     [string]$sshKey = ""
 )
 
@@ -72,9 +72,10 @@ echo "✓ Production .env protected"
 "@
 
 # Build SSH command
-if ($sshKey) {
+if ($sshKey -and (Test-Path $sshKey)) {
     $sshCommand = "ssh -i `"$sshKey`" $serverUser@$serverHost `"$sshCommands`""
 } else {
+    # Use password authentication (will prompt for password)
     $sshCommand = "ssh $serverUser@$serverHost `"$sshCommands`""
 }
 

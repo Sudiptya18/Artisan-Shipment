@@ -5,7 +5,7 @@ param(
     [string]$serverUser = "ship",
     [string]$serverHost = "ship.artisanbn.com",
     [string]$serverPath = "/home/artisanbn/public_html/ship.artisanbn.com",
-    [string]$sshKey = "t9qMCvHG82tQHAVhhqKh31UkB3edyQwcqyoN8e2Nans"
+    [string]$sshKey = ""
 )
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -20,13 +20,15 @@ if (-not $sshAvailable) {
     exit 1
 }
 
-# Build SSH command
-$sshCommand = "cd $serverPath && git pull origin main && php artisan migrate --force && php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear"
+# Build SSH command - escape the command properly for remote execution
+$remoteCommand = "cd $serverPath && git pull origin main && php artisan migrate --force && php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear"
 
-if ($sshKey) {
-    $sshCommand = "ssh -i `"$sshKey`" $serverUser@$serverHost `"$sshCommand`""
+# Build SSH command with proper escaping
+if ($sshKey -and (Test-Path $sshKey)) {
+    $sshCommand = "ssh -i `"$sshKey`" $serverUser@$serverHost `"$remoteCommand`""
 } else {
-    $sshCommand = "ssh $serverUser@$serverHost `"$sshCommand`""
+    # Use password authentication (will prompt for password)
+    $sshCommand = "ssh $serverUser@$serverHost `"$remoteCommand`""
 }
 
 Write-Host "Connecting to live server..." -ForegroundColor Yellow
