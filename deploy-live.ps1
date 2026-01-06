@@ -4,8 +4,8 @@
 param(
     [string]$serverUser = "ship",
     [string]$serverHost = "ship.artisanbn.com",
-    [string]$serverPath = "/home/ship/public_html/ship.artisanbn.com",
-    [string]$sshKey = ""
+    [string]$serverPath = "/home/artisanbn/public_html/ship.artisanbn.com",
+    [string]$sshKey = "t9qMCvHG82tQHAVhhqKh31UkB3edyQwcqyoN8e2Nans"
 )
 
 Write-Host "========================================" -ForegroundColor Cyan

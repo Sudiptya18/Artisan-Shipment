@@ -122,8 +122,8 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host "Safe Deployment Complete!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "✓ Local files protected" -ForegroundColor Green
-Write-Host "✓ Changes pushed to GitHub" -ForegroundColor Green
+Write-Host "[OK] Local files protected" -ForegroundColor Green
+Write-Host "[OK] Changes pushed to GitHub" -ForegroundColor Green
 if (-not $skipDeploy) {
-    Write-Host "✓ Live server updated" -ForegroundColor Green
+    Write-Host "[OK] Live server updated" -ForegroundColor Green
 }
