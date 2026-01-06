@@ -7,8 +7,8 @@ define('LARAVEL_START', microtime(true));
 
 // Ensure we're in the correct project directory
 $basePath = realpath(__DIR__.'/..');
-if (strpos($basePath, 'Artisan-Shipment') === false) {
-    die('Error: Incorrect project path detected. Expected Artisan-Shipment project.');
+if (strpos(strtolower($basePath), 'artisan-shipment') === false) {
+    die('Error: Incorrect project path detected. Expected artisan-shipment project.');
 }
 
 // Determine if the application is in maintenance mode...
