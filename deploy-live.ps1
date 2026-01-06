@@ -23,19 +23,18 @@ if (-not $sshAvailable) {
 # Build SSH command - escape the command properly for remote execution
 $remoteCommand = "cd $serverPath && git pull origin main && php artisan migrate --force && php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear"
 
-# Build SSH command with proper escaping
+Write-Host "Connecting to live server..." -ForegroundColor Yellow
+Write-Host "Server: $serverUser@$serverHost" -ForegroundColor Gray
+Write-Host "Path: $serverPath" -ForegroundColor Gray
+Write-Host ""
+
+# Execute SSH command with proper escaping
 if ($sshKey -and (Test-Path $sshKey)) {
-    $sshCommand = "ssh -i `"$sshKey`" $serverUser@$serverHost `"$remoteCommand`""
+    ssh -i "$sshKey" "$serverUser@$serverHost" "$remoteCommand"
 } else {
     # Use password authentication (will prompt for password)
-    $sshCommand = "ssh $serverUser@$serverHost `"$remoteCommand`""
+    ssh "$serverUser@$serverHost" "$remoteCommand"
 }
-
-Write-Host "Connecting to live server..." -ForegroundColor Yellow
-Write-Host "Command: $sshCommand" -ForegroundColor Gray
-
-# Execute SSH command
-Invoke-Expression $sshCommand
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Successfully deployed to live server!" -ForegroundColor Green

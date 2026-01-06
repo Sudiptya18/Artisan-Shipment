@@ -5,11 +5,7 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
-// Ensure we're in the correct project directory
-$basePath = realpath(__DIR__.'/..');
-if (strpos($basePath, 'Artisan-Shipment') === false) {
-    die('Error: Incorrect project path detected. Expected Artisan-Shipment project.');
-}
+// Path validation removed - was causing issues on both local and live servers
 
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
